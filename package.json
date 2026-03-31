@@ -1,0 +1,18 @@
+{
+  "name": "uni-connect",
+  "version": "1.0.0",
+  "description": "Smart Student Collaboration Platform",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm start",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
+  },
+  "keywords": ["mern", "education", "collaboration", "students"],
+  "author": "Uni-Connect Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
