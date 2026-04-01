@@ -55,6 +55,9 @@ const SubjectForm = ({ subject, onSubmit, onCancel, loading = false }) => {
             <input
               {...register('name')}
               type="text"
+              required
+              minLength="2"
+              maxLength="100"
               className="form-input block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
               placeholder="e.g., Mathematics, Computer Science"
             />
@@ -67,6 +70,8 @@ const SubjectForm = ({ subject, onSubmit, onCancel, loading = false }) => {
             <input
               {...register('code')}
               type="text"
+              maxLength="20"
+              pattern="[A-Z0-9]+"
               className="form-input block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
               placeholder="e.g., MATH101, CS201"
             />
@@ -80,6 +85,9 @@ const SubjectForm = ({ subject, onSubmit, onCancel, loading = false }) => {
               <input
                 {...register('credits')}
                 type="number"
+                min="0.5"
+                max="10"
+                step="0.5"
                 className="form-input block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
                 placeholder="3"
               />
@@ -92,6 +100,7 @@ const SubjectForm = ({ subject, onSubmit, onCancel, loading = false }) => {
               <input
                 {...register('semester')}
                 type="text"
+                maxLength="50"
                 className="form-input block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
                 placeholder="Fall 2024"
               />
@@ -137,7 +146,7 @@ const SubjectForm = ({ subject, onSubmit, onCancel, loading = false }) => {
                   {...register('weeklyStudyHours')}
                   type="number"
                   min="0"
-                  max="100"
+                  max="168"
                   step="0.5"
                   className="form-input block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
                   placeholder="6"

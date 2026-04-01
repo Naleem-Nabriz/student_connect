@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { X } from 'lucide-react';
+import { X, BookOpen } from 'lucide-react';
+import ResourceRecommendations from './ResourceRecommendations';
 
 const GroupForm = ({ group, onSubmit, onCancel, loading = false }) => {
+  const [showRecommendations, setShowRecommendations] = useState(false);
   
   const {
     register,
@@ -18,20 +20,37 @@ const GroupForm = ({ group, onSubmit, onCancel, loading = false }) => {
     },
   });
 
+  const formValues = watch();
+
   const onFormSubmit = (data) => {
     onSubmit(data);
   };
 
-  const formValues = watch();
+  const handleResourceSelect = (resource) => {
+    // Could implement resource sharing or linking functionality here
+    console.log('Selected resource:', resource);
+  };
 
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">
-            {group ? 'Edit Group' : 'Create New Group'}
-          </h2>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">
+              {group ? 'Edit Group' : 'Create New Group'}
+            </h2>
+            <div className="flex items-center space-x-2 mt-2">
+              <button
+                type="button"
+                onClick={() => setShowRecommendations(!showRecommendations)}
+                className="flex items-center px-3 py-1 text-sm bg-primary-100 text-primary-700 rounded-md hover:bg-primary-200 transition-colors"
+              >
+                <BookOpen className="h-4 w-4 mr-1" />
+                {showRecommendations ? 'Hide' : 'Show'} Resources
+              </button>
+            </div>
+          </div>
           <button
             onClick={onCancel}
             className="p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-full transition-colors"
@@ -48,6 +67,9 @@ const GroupForm = ({ group, onSubmit, onCancel, loading = false }) => {
             <input
               {...register('name')}
               type="text"
+              required
+              minLength="2"
+              maxLength="100"
               className="form-input block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
               placeholder="Enter group name"
             />
@@ -60,6 +82,9 @@ const GroupForm = ({ group, onSubmit, onCancel, loading = false }) => {
             <input
               {...register('subject')}
               type="text"
+              required
+              minLength="2"
+              maxLength="50"
               className="form-input block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
               placeholder="e.g., Mathematics, Computer Science"
             />
@@ -72,6 +97,7 @@ const GroupForm = ({ group, onSubmit, onCancel, loading = false }) => {
             <textarea
               {...register('description')}
               rows={3}
+              maxLength="500"
               className="form-input block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
               placeholder="Describe the group's purpose and goals"
             />
@@ -84,6 +110,9 @@ const GroupForm = ({ group, onSubmit, onCancel, loading = false }) => {
             <input
               {...register('capacity', { valueAsNumber: true })}
               type="number"
+              required
+              min="2"
+              max="50"
               className="form-input block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
               placeholder="Maximum number of members"
             />
@@ -114,6 +143,17 @@ const GroupForm = ({ group, onSubmit, onCancel, loading = false }) => {
             </button>
           </div>
         </form>
+
+        {/* Resource Recommendations Section */}
+        {showRecommendations && (
+          <div className="border-t border-gray-200">
+            <ResourceRecommendations
+              groupData={formValues}
+              onResourceSelect={handleResourceSelect}
+              className="border-0 rounded-none"
+            />
+          </div>
+        )}
       </div>
     </div>
   );

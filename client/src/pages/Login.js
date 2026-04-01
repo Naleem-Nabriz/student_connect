@@ -64,6 +64,8 @@ const Login = () => {
                     validate: value => validateEmail(value)
                   })}
                   type="email"
+                  required
+                  autoComplete="email"
                   className={`block w-full pl-10 pr-3 py-2 bg-[#111217] rounded-md text-white placeholder-[#A0A3BD] ${errors.email ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : watch('email') ? 'border-green-500 focus:ring-green-500 focus:border-green-500' : 'border-[#2A2D36] focus:ring-2 focus:ring-[#FF7A00] focus:border-[#FF7A00]'}`}
                   placeholder="Enter your email"
                 />
@@ -86,6 +88,9 @@ const Login = () => {
                     validate: value => validatePassword(value)
                   })}
                   type={showPassword ? 'text' : 'password'}
+                  required
+                  autoComplete="current-password"
+                  minLength="6"
                   className={`block w-full pl-10 pr-10 py-2 bg-[#111217] rounded-md text-white placeholder-[#A0A3BD] ${errors.password ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : watch('password') ? 'border-green-500 focus:ring-green-500 focus:border-green-500' : 'border-[#2A2D36] focus:ring-2 focus:ring-[#FF7A00] focus:border-[#FF7A00]'}`}
                   placeholder="Enter your password"
                 />

@@ -72,6 +72,10 @@ const Register = () => {
                       }
                     })}
                     type="text"
+                    required
+                    autoComplete="given-name"
+                    minLength="2"
+                    maxLength="50"
                     className={`block w-full pl-10 pr-3 py-2 bg-[#111217] border rounded-md text-white placeholder-[#A0A3BD] ${errors.firstName ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : errors.firstName === undefined && watch('firstName') ? 'border-green-500 focus:ring-green-500 focus:border-green-500' : 'border-[#2A2D36] focus:ring-[#FF7A00] focus:border-[#FF7A00]'}`}
                     placeholder="Enter first name"
                   />
@@ -99,6 +103,10 @@ const Register = () => {
                       }
                     })}
                     type="text"
+                    required
+                    autoComplete="family-name"
+                    minLength="2"
+                    maxLength="50"
                     className={`form-input block w-full pl-10 pr-3 py-2 rounded-md ${errors.lastName ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : watch('lastName') ? 'border-green-500 focus:ring-green-500 focus:border-green-500' : 'border-gray-300 focus:ring-primary-500 focus:border-primary-500'}`}
                     placeholder="Last name"
                   />
@@ -128,6 +136,11 @@ const Register = () => {
                     }
                   })}
                   type="text"
+                  required
+                  autoComplete="username"
+                  minLength="3"
+                  maxLength="30"
+                  pattern="[a-zA-Z0-9_]+"
                   className={`form-input block w-full pl-10 pr-3 py-2 rounded-md ${errors.username ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : watch('username') ? 'border-green-500 focus:ring-green-500 focus:border-green-500' : 'border-gray-300 focus:ring-primary-500 focus:border-primary-500'}`}
                     placeholder="Choose a username"
                 />
@@ -150,6 +163,8 @@ const Register = () => {
                     validate: value => validateEmail(value),
                   })}
                   type="email"
+                  required
+                  autoComplete="email"
                   className={`form-input block w-full pl-10 pr-3 py-2 rounded-md ${errors.email ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : watch('email') ? 'border-green-500 focus:ring-green-500 focus:border-green-500' : 'border-gray-300 focus:ring-primary-500 focus:border-primary-500'}`}
                   placeholder="Enter your email"
                 />
@@ -172,6 +187,10 @@ const Register = () => {
                     validate: value => validatePassword(value),
                   })}
                   type={showPassword ? 'text' : 'password'}
+                  required
+                  autoComplete="new-password"
+                  minLength="6"
+                  maxLength="128"
                   className={`form-input block w-full pl-10 pr-10 py-2 rounded-md ${errors.password ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : watch('password') ? 'border-green-500 focus:ring-green-500 focus:border-green-500' : 'border-gray-300 focus:ring-primary-500 focus:border-primary-500'}`}
                   placeholder="Create a password"
                 />
@@ -206,6 +225,8 @@ const Register = () => {
                     validate: value => value === password || 'Passwords do not match',
                   })}
                   type={showPassword ? 'text' : 'password'}
+                  required
+                  autoComplete="new-password"
                   className="form-input block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Confirm your password"
                 />

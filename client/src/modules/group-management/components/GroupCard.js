@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
-import { Users, Calendar, UserPlus, UserMinus, Edit, Trash2 } from 'lucide-react';
+import { Users, Calendar, UserPlus, UserMinus, Edit, Trash2, BookOpen, ExternalLink } from 'lucide-react';
+import ResourceRecommendations from './ResourceRecommendations';
 
 const GroupCard = ({ group, onJoin, onLeave, onEdit, onDelete, isOwner = false }) => {
   const { user } = useAuth();
+  const [showResources, setShowResources] = useState(false);
   
   const isMember = group.members?.some(member => member._id === user?.id);
   const isFull = group.members?.length >= group.capacity;
@@ -27,6 +29,10 @@ const GroupCard = ({ group, onJoin, onLeave, onEdit, onDelete, isOwner = false }
     }
   };
 
+  const handleResourceSelect = (resource) => {
+    console.log('Selected resource for group:', group.name, resource);
+  };
+
   return (
     <div className="card-hover bg-white rounded-lg shadow-md p-6 border border-gray-200">
       <div className="flex items-start justify-between mb-4">
@@ -38,6 +44,13 @@ const GroupCard = ({ group, onJoin, onLeave, onEdit, onDelete, isOwner = false }
           )}
         </div>
         <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setShowResources(!showResources)}
+            className="p-2 text-purple-600 hover:bg-purple-50 rounded-full transition-colors"
+            title="View resources"
+          >
+            <BookOpen className="h-4 w-4" />
+          </button>
           {isOwner && (
             <>
               <button
@@ -129,6 +142,17 @@ const GroupCard = ({ group, onJoin, onLeave, onEdit, onDelete, isOwner = false }
           Created by {group.createdBy?.firstName} {group.createdBy?.lastName}
         </p>
       </div>
+
+      {/* Resource Recommendations Section */}
+      {showResources && (
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <ResourceRecommendations
+            groupData={group}
+            onResourceSelect={handleResourceSelect}
+            className="border-0 rounded-none shadow-none p-0"
+          />
+        </div>
+      )}
     </div>
   );
 };

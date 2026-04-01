@@ -67,6 +67,7 @@ const RecordForm = ({ record, subjects, onSubmit, onCancel, loading = false }) =
             </label>
             <select
               {...register('subjectId')}
+              required
               className="form-input block w-full px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="">Select a subject</option>
@@ -102,6 +103,9 @@ const RecordForm = ({ record, subjects, onSubmit, onCancel, loading = false }) =
               <input
                 {...register('marks')}
                 type="number"
+                min="0"
+                max="100"
+                step="0.01"
                 className="form-input block w-full px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500"
                 placeholder="85"
               />
@@ -114,6 +118,9 @@ const RecordForm = ({ record, subjects, onSubmit, onCancel, loading = false }) =
               <input
                 {...register('attendance')}
                 type="number"
+                min="0"
+                max="100"
+                step="0.1"
                 className="form-input block w-full px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500"
                 placeholder="90"
               />
@@ -126,6 +133,9 @@ const RecordForm = ({ record, subjects, onSubmit, onCancel, loading = false }) =
               <input
                 {...register('assignmentScore')}
                 type="number"
+                min="0"
+                max="100"
+                step="0.01"
                 className="form-input block w-full px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500"
                 placeholder="88"
               />
@@ -141,6 +151,7 @@ const RecordForm = ({ record, subjects, onSubmit, onCancel, loading = false }) =
               <input
                 {...register('date')}
                 type="date"
+                required
                 className="form-input block w-full pl-10 pr-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
@@ -153,6 +164,7 @@ const RecordForm = ({ record, subjects, onSubmit, onCancel, loading = false }) =
             <textarea
               {...register('notes')}
               rows={3}
+              maxLength="500"
               className="form-input block w-full px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500"
               placeholder="Additional notes about this record..."
             />

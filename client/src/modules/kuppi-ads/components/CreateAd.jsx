@@ -87,6 +87,8 @@ const CreateAd = ({ ad = null, onClose, onSuccess }) => {
                 value={formData.title}
                 onChange={handleChange}
                 required
+                minLength="3"
+                maxLength="200"
                 className="w-full px-3 py-2 bg-[#111217] border border-[#2A2D36] rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF7A00] text-white placeholder-[#A0A3BD]"
                 placeholder="Enter ad title"
               />
@@ -102,6 +104,8 @@ const CreateAd = ({ ad = null, onClose, onSuccess }) => {
                 value={formData.subject}
                 onChange={handleChange}
                 required
+                minLength="2"
+                maxLength="100"
                 className="w-full px-3 py-2 bg-[#111217] border border-[#2A2D36] rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF7A00] text-white placeholder-[#A0A3BD]"
                 placeholder="Enter subject"
               />
@@ -117,6 +121,8 @@ const CreateAd = ({ ad = null, onClose, onSuccess }) => {
                 onChange={handleChange}
                 rows={4}
                 required
+                minLength="10"
+                maxLength="1000"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="Enter detailed description"
               />
@@ -132,6 +138,8 @@ const CreateAd = ({ ad = null, onClose, onSuccess }) => {
                 value={formData.tutorName}
                 onChange={handleChange}
                 required
+                minLength="2"
+                maxLength="100"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="Enter tutor name"
               />
@@ -147,6 +155,8 @@ const CreateAd = ({ ad = null, onClose, onSuccess }) => {
                 value={formData.contactInfo}
                 onChange={handleChange}
                 required
+                minLength="5"
+                maxLength="200"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="Phone number or email"
               />
@@ -162,6 +172,8 @@ const CreateAd = ({ ad = null, onClose, onSuccess }) => {
                 value={formData.location}
                 onChange={handleChange}
                 required
+                minLength="2"
+                maxLength="200"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="City or area"
               />
@@ -175,6 +187,7 @@ const CreateAd = ({ ad = null, onClose, onSuccess }) => {
                 name="classType"
                 value={formData.classType}
                 onChange={handleChange}
+                required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="online">Online Class</option>
@@ -206,6 +219,9 @@ const CreateAd = ({ ad = null, onClose, onSuccess }) => {
                 value={formData.time}
                 onChange={handleChange}
                 required
+                minLength="5"
+                maxLength="50"
+                pattern="[0-9]{1,2}(:[0-9]{2})?\s*(AM|PM|am|pm)\s*-\s*[0-9]{1,2}(:[0-9]{2})?\s*(AM|PM|am|pm)"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="e.g., 6:00 PM - 8:00 PM"
               />
@@ -220,6 +236,9 @@ const CreateAd = ({ ad = null, onClose, onSuccess }) => {
                 name="price"
                 value={formData.price}
                 onChange={handleChange}
+                min="0"
+                max="50000"
+                step="0.01"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="0"
               />
@@ -234,6 +253,8 @@ const CreateAd = ({ ad = null, onClose, onSuccess }) => {
                 name="maxStudents"
                 value={formData.maxStudents}
                 onChange={handleChange}
+                min="1"
+                max="100"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="30"
               />

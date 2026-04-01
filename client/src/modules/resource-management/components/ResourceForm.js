@@ -90,6 +90,9 @@ const ResourceForm = ({ resource, onSubmit, onCancel, loading = false }) => {
             <input
               {...register('title')}
               type="text"
+              required
+              minLength="3"
+              maxLength="200"
               onChange={() => handleInputChange('title')}
               className={`form-input block w-full px-3 py-2 border rounded-md ${
                 errors.title
@@ -113,8 +116,11 @@ const ResourceForm = ({ resource, onSubmit, onCancel, loading = false }) => {
               <input
                 {...register('subject')}
                 type="text"
+                required
+                minLength="2"
+                maxLength="100"
                 onChange={() => handleInputChange('subject')}
-              className={`form-input block w-full px-3 py-2 border rounded-md ${
+                className={`form-input block w-full px-3 py-2 border rounded-md ${
                   errors.subject
                     ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                     : formValues.subject?.trim()
@@ -134,6 +140,7 @@ const ResourceForm = ({ resource, onSubmit, onCancel, loading = false }) => {
               </label>
               <select
                 {...register('type')}
+                required
                 onChange={() => handleInputChange('type')}
                 className={`form-input block w-full px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500 ${
                   errors.type ? 'border-red-300' : 'border-gray-300'
@@ -159,6 +166,7 @@ const ResourceForm = ({ resource, onSubmit, onCancel, loading = false }) => {
               {...register('description')}
               onChange={() => handleInputChange('description')}
               rows={3}
+              maxLength="1000"
               className={`form-input block w-full px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500 ${
                 errors.description ? 'border-red-300' : 'border-gray-300'
               }`}
@@ -178,6 +186,7 @@ const ResourceForm = ({ resource, onSubmit, onCancel, loading = false }) => {
               <input
                 {...register('linkUrl')}
                 type="url"
+                required
                 onChange={() => handleInputChange('linkUrl')}
                 className={`form-input block w-full px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500 ${
                   errors.linkUrl ? 'border-red-300' : 'border-gray-300'
@@ -196,6 +205,7 @@ const ResourceForm = ({ resource, onSubmit, onCancel, loading = false }) => {
               <input
                 {...register('fileUrl')}
                 type="url"
+                required
                 onChange={() => handleInputChange('fileUrl')}
                 className={`form-input block w-full px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500 ${
                   errors.fileUrl ? 'border-red-300' : 'border-gray-300'
@@ -218,6 +228,8 @@ const ResourceForm = ({ resource, onSubmit, onCancel, loading = false }) => {
             <input
               {...register('tags')}
               type="text"
+              maxLength="200"
+              pattern="^[a-zA-Z0-9\s,-]+$"
               className="form-input block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
               placeholder="math, calculus, tutorial (comma-separated)"
             />
