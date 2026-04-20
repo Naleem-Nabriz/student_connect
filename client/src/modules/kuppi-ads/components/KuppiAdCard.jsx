@@ -1,66 +1,65 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { kuppiAdService } from '../services/kuppiAdApi';
+import { CheckCircle2, Clock3, XCircle, Edit3, Trash2, Check, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const KuppiAdCard = ({ ad, onUpdate, onDelete, onApprove, onReject, onEnroll, currentUser }) => {
+const KuppiAdCard = ({ ad, onUpdate, onDelete, onApprove, onReject, onEnroll }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [enrollmentLoading, setEnrollmentLoading] = useState(false);
   const [updatedAd, setUpdatedAd] = useState(ad);
-  
-  const isOwner = updatedAd.createdBy._id === user?.id;
+
+  const currentUserId = user?._id || user?.id;
+  const createdById =
+    updatedAd?.createdBy?._id || updatedAd?.createdBy?.id || updatedAd?.createdBy;
+
+  const isOwner = createdById === currentUserId;
   const isAdmin = user?.role === 'admin';
 
-  // Check if student is already enrolled
   useEffect(() => {
-    if (user && updatedAd.enrolledStudents) {
+    setUpdatedAd(ad);
+  }, [ad]);
+
+  useEffect(() => {
+    if (currentUserId && updatedAd.enrolledStudents) {
       const enrolled = updatedAd.enrolledStudents.some(
-        enrollment => enrollment.student?._id === user.id || enrollment.student === user.id
+        (enrollment) =>
+          enrollment.student?._id === currentUserId ||
+          enrollment.student?.id === currentUserId ||
+          enrollment.student === currentUserId
       );
       setIsEnrolled(enrolled);
+    } else {
+      setIsEnrolled(false);
     }
-  }, [updatedAd, user]);
+  }, [updatedAd, currentUserId]);
 
   const getStatusColor = (status) => {
     switch (status) {
       case 'approved':
-        return 'bg-green-100 text-green-800';
+        return 'bg-[#d9ecf7] text-[#0b5f8f]';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-[#fff1cc] text-[#8a6a10]';
       case 'rejected':
-        return 'bg-red-100 text-red-800';
+        return 'bg-[#f6e3dc] text-[#b85f47]';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-[#efe4d8] text-[#62574d]';
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
       case 'approved':
-        return (
-          <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 008 0v-4a2 2 0 00-2 2v6a2 2 0 00-2 2 2 2v6a2 2 0 002 2l-3 3a2 2 0 004-2l-3-3a2 2 0 00-2z" clipRule="evenodd" />
-          </svg>
-        );
+        return <CheckCircle2 className="h-4 w-4 text-[#0077B6]" />;
       case 'pending':
-        return (
-          <svg className="w-4 h-4 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 008 0v-1a1 1 0 00-2 2v1a1 1 0 002 2l-3 3a1 1 0 004-2l-3-3a1 1 0 002-2z" clipRule="evenodd" />
-          </svg>
-        );
+        return <Clock3 className="h-4 w-4 text-[#8a6a10]" />;
       case 'rejected':
-        return (
-          <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 008 0v-2a2 2 0 00-2 2v2a2 2 0 002 2l-3 3a2 2 0 004-2l-3-3a2 2 0 002-2z" clipRule="evenodd" />
-          </svg>
-        );
+        return <XCircle className="h-4 w-4 text-[#E07A5F]" />;
       default:
-        return (
-          <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 008 0v-1a1 1 0 00-2 2v1a1 1 0 002 2l-3 3a1 1 0 004-2l-3-3a1 1 0 002-2z" clipRule="evenodd" />
-          </svg>
-        );
+        return <Clock3 className="h-4 w-4 text-[#62574d]" />;
     }
   };
 
@@ -124,24 +123,36 @@ const KuppiAdCard = ({ ad, onUpdate, onDelete, onApprove, onReject, onEnroll, cu
       return;
     }
 
-    setEnrollmentLoading(true);
-    try {
-      const result = await kuppiAdService.enrollClass(updatedAd._id);
-      
-      // Update local state with new enrollment count
-      setUpdatedAd(result.kuppiClass || result);
-      setIsEnrolled(true);
-      toast.success('Enrolled successfully!');
-      
-      // Call parent callback if provided
-      if (onEnroll) {
-        onEnroll(result.kuppiClass || result);
+    if (isOwner) {
+      toast.error('You cannot enroll in your own class');
+      return;
+    }
+
+    // Check if class is free
+    if (updatedAd.price === 0) {
+      // FREE CLASS - Direct enrollment
+      setEnrollmentLoading(true);
+      try {
+        const result = await kuppiAdService.enrollClass(updatedAd._id);
+        setUpdatedAd(result.kuppiClass || result);
+        setIsEnrolled(true);
+        toast.success('Enrolled successfully (Free Class)');
+
+        if (onEnroll) {
+          onEnroll(result.kuppiClass || result);
+        }
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setEnrollmentLoading(false);
       }
-    } catch (error) {
-      toast.error(error.message);
-      setEnrollmentLoading(false);
-    } finally {
-      setEnrollmentLoading(false);
+    } else {
+      // PAID CLASS - Go to payment
+      navigate(`/kuppi/payment/${updatedAd._id}`, {
+        state: {
+          ad: updatedAd
+        }
+      });
     }
   };
 
@@ -153,13 +164,10 @@ const KuppiAdCard = ({ ad, onUpdate, onDelete, onApprove, onReject, onEnroll, cu
     setEnrollmentLoading(true);
     try {
       const result = await kuppiAdService.unenrollClass(updatedAd._id);
-      
-      // Update local state with new enrollment count
       setUpdatedAd(result.kuppiClass || result);
       setIsEnrolled(false);
       toast.success('Unenrolled successfully!');
-      
-      // Call parent callback if provided
+
       if (onEnroll) {
         onEnroll(result.kuppiClass || result);
       }
@@ -171,7 +179,7 @@ const KuppiAdCard = ({ ad, onUpdate, onDelete, onApprove, onReject, onEnroll, cu
   };
 
   return (
-    <div className="bg-[#1A1C22] border border-[#2A2D36] rounded-xl shadow-lg p-6 hover:shadow-xl hover:border-[#FF7A00] transition-all duration-300 transform hover:-translate-y-1">
+    <div className="rounded-[24px] border border-[#d8e4e6] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(253,246,236,0.92))] p-6 shadow-[0_18px_45px_rgba(61,61,61,0.08)] transition-all duration-300 hover:-translate-y-1 hover:border-[#0077B6]/30 hover:shadow-[0_22px_55px_rgba(61,61,61,0.12)]">
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-2">
@@ -179,118 +187,102 @@ const KuppiAdCard = ({ ad, onUpdate, onDelete, onApprove, onReject, onEnroll, cu
               {getStatusIcon(updatedAd.status)}
               <span className="ml-1 capitalize">{updatedAd.status}</span>
             </span>
-            <span className="text-xs text-gray-500">{updatedAd.subject}</span>
+            {updatedAd.price === 0 && (
+              <span className="inline-flex items-center rounded-full bg-[#d9f1ea] px-2.5 py-0.5 text-xs font-medium text-[#0c6e59]">
+                FREE
+              </span>
+            )}
+            <span className="text-xs text-[#85786c]">{updatedAd.subject}</span>
           </div>
-          <h3 className="text-lg font-semibold text-white mb-2">{updatedAd.title}</h3>
-          <p className="text-sm text-[#A0A3BD] line-clamp-3">{updatedAd.description}</p>
-          
-          <div className="grid grid-cols-2 gap-4 mt-3 text-sm text-[#A0A3BD]">
-            <div>
-              <span className="font-medium text-white">Tutor:</span> {updatedAd.tutorName}
+          <h3 className="mb-2 text-lg font-semibold text-[#3D3D3D]">{updatedAd.title}</h3>
+          <p className="line-clamp-3 text-sm text-[#62574d]">{updatedAd.description}</p>
+
+          <div className="mt-3 grid grid-cols-2 gap-4 text-sm text-[#62574d]">
+            <div><span className="font-medium text-[#3D3D3D]">Tutor:</span> {updatedAd.tutorName}</div>
+            <div><span className="font-medium text-[#3D3D3D]">Contact:</span> {updatedAd.contactInfo}</div>
+            <div><span className="font-medium text-[#3D3D3D]">Location:</span> {updatedAd.location}</div>
+            <div><span className="font-medium text-[#3D3D3D]">Type:</span> {updatedAd.classType}</div>
+            <div><span className="font-medium text-[#3D3D3D]">Date:</span> {new Date(updatedAd.date).toLocaleDateString()}</div>
+            <div><span className="font-medium text-[#3D3D3D]">Time:</span> {updatedAd.time}</div>
+            <div><span className="font-medium text-[#3D3D3D]">Price:</span> 
+              {updatedAd.price === 0 ? (
+                <span className="font-semibold text-[#0c6e59]">FREE</span>
+              ) : (
+                <span className="text-[#b85f47]">Rs. {updatedAd.price}</span>
+              )}
             </div>
-            <div>
-              <span className="font-medium text-white">Contact:</span> {updatedAd.contactInfo}
-            </div>
-            <div>
-              <span className="font-medium text-white">Location:</span> {updatedAd.location}
-            </div>
-            <div>
-              <span className="font-medium text-white">Type:</span> {updatedAd.classType}
-            </div>
-            <div>
-              <span className="font-medium text-white">Date:</span> {new Date(updatedAd.date).toLocaleDateString()}
-            </div>
-            <div>
-              <span className="font-medium text-white">Time:</span> {updatedAd.time}
-            </div>
-            <div>
-              <span className="font-medium text-white">Price:</span> Rs. {updatedAd.price}
-            </div>
-            <div>
-              <span className="font-medium text-white">Max Students:</span> {updatedAd.maxStudents}
-            </div>
-            <div>
-              <span className="font-medium text-white">Enrolled:</span> {updatedAd.currentEnrollments}/{updatedAd.maxStudents}
-            </div>
+            <div><span className="font-medium text-[#3D3D3D]">Max Students:</span> {updatedAd.maxStudents}</div>
+            <div><span className="font-medium text-[#3D3D3D]">Enrolled:</span> {updatedAd.currentEnrollments}/{updatedAd.maxStudents}</div>
           </div>
-          
+
           {getStatusMessage(updatedAd.status) && (
-            <div className="mt-2 p-2 bg-[#111217] border border border-[#2A2D36] rounded-md">
-              <p className="text-sm text-[#FF7A00]">{getStatusMessage(updatedAd.status)}</p>
+            <div className="mt-3 rounded-2xl border border-[#eadfce] bg-[#fffaf2] p-3">
+              <p className="text-sm text-[#62574d]">{getStatusMessage(updatedAd.status)}</p>
             </div>
           )}
 
-          {/* Enrollment button for students viewing approved classes */}
           {updatedAd.status === 'approved' && !isOwner && !isAdmin && (
             <div className="mt-4">
               {isEnrolled ? (
                 <button
                   onClick={handleUnenroll}
-                  disabled={enrollmentLoading || updatedAd.currentEnrollments >= updatedAd.maxStudents}
-                  className="w-full py-2 px-4 bg-green-600 text-white rounded-lg font-medium transition-colors duration-200 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
+                  disabled={enrollmentLoading}
+                  className="w-full rounded-full bg-[#E07A5F] px-4 py-2 font-medium text-white transition-colors duration-200 hover:bg-[#c96a52] disabled:cursor-not-allowed disabled:bg-[#d7c8b7]"
                 >
-                  {enrollmentLoading ? 'Processing...' : 'Enrolled ✓'}
+                  {enrollmentLoading ? 'Processing...' : 'Unenroll'}
                 </button>
               ) : (
                 <button
                   onClick={handleEnroll}
                   disabled={enrollmentLoading || updatedAd.currentEnrollments >= updatedAd.maxStudents}
-                  className={`w-full py-2 px-4 text-white rounded-lg font-medium transition-colors duration-200 ${
+                  className={`w-full rounded-full px-4 py-2 font-medium transition-colors duration-200 ${
                     updatedAd.currentEnrollments >= updatedAd.maxStudents
-                      ? 'bg-gray-600 cursor-not-allowed'
-                      : 'bg-[#FF7A00] hover:bg-[#E86A00]'
+                      ? 'cursor-not-allowed bg-[#d7c8b7] text-[#62574d]'
+                      : 'bg-[#0077B6] text-white hover:bg-[#005f92]'
                   } disabled:cursor-not-allowed`}
                 >
-                  {enrollmentLoading ? 'Enrolling...' : 'Enroll Now'}
+                  {enrollmentLoading ? 'Enrolling...' : (updatedAd.price === 0 ? 'Enroll Now' : 'Enroll & Pay')}
                 </button>
               )}
             </div>
           )}
         </div>
-        
+
         <div className="flex items-center space-x-2">
           {(isOwner || isAdmin) && (
             <>
               <button
                 onClick={handleEdit}
-                className="p-2 text-[#FFB800] hover:bg-[#1A1C22] rounded-full transition-colors"
+                className="rounded-full p-2 text-[#0077B6] transition-colors hover:bg-[#d9ecf7]"
                 title="Edit ad"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v14a2 2 0 002 2h2a2 2 0 002 2v-2a2 2 0 00-2z" />
-                </svg>
+                <Edit3 className="w-4 h-4" />
               </button>
               <button
                 onClick={handleDelete}
-                className="p-2 text-[#EF4444] hover:bg-[#1A1C22] rounded-full transition-colors"
+                className="rounded-full p-2 text-[#E07A5F] transition-colors hover:bg-[#f6e3dc]"
                 title="Delete ad"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 002-2 2H7a2 2 0 00-2-2v-2a2 2 0 002-2l-3 3a2 2 0 004-2l-3-3a2 2 0 002-2z" />
-                </svg>
+                <Trash2 className="w-4 h-4" />
               </button>
             </>
           )}
-          
+
           {isAdmin && updatedAd.status === 'pending' && (
             <>
               <button
                 onClick={handleApprove}
-                className="p-2 text-[#22C55E] hover:bg-[#1A1C22] rounded-full transition-colors"
+                className="rounded-full p-2 text-[#0077B6] transition-colors hover:bg-[#d9ecf7]"
                 title="Approve ad"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L5 5l-4 4M5 13l4 4L5 5z" />
-                </svg>
+                <Check className="w-4 h-4" />
               </button>
               <button
                 onClick={handleReject}
-                className="p-2 text-[#EF4444] hover:bg-[#1A1C22] rounded-full transition-colors"
+                className="rounded-full p-2 text-[#E07A5F] transition-colors hover:bg-[#f6e3dc]"
                 title="Reject ad"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 002-2 2H7a2 2 0 00-2-2v-2a2 2 0 002-2l-3 3a2 2 0 004-2l-3-3a2 2 0 002-2z" />
-                </svg>
+                <X className="w-4 h-4" />
               </button>
             </>
           )}

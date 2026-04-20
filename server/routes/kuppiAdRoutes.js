@@ -11,7 +11,8 @@ const {
   deleteKuppiAd,
   enrollStudent,
   getMyEnrollments,
-  unenrollStudent
+  unenrollStudent,
+  processPaymentAndEnroll
 } = require('../controllers/kuppiAdController');
 
 const router = express.Router();
@@ -114,6 +115,7 @@ router.get('/approved', getApprovedKuppiAds);
 
 // Enrollment routes (MUST be before /my/:userId route)
 router.post('/enroll/:classId', protect, enrollStudent);
+router.post('/payment/:classId', protect, processPaymentAndEnroll);
 router.post('/unenroll/:classId', protect, unenrollStudent);
 router.get('/my-enrollments/:studentId', protect, getMyEnrollments);
 

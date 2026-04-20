@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { academicService } from '../services/academicService';
+
+const EMPTY_PARAMS = {};
 
 export const useSubjects = () => {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchSubjects = async () => {
+  const fetchSubjects = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -17,7 +19,7 @@ export const useSubjects = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const createSubject = async (subjectData) => {
     setLoading(true);
@@ -67,7 +69,7 @@ export const useSubjects = () => {
 
   useEffect(() => {
     fetchSubjects();
-  }, []);
+  }, [fetchSubjects]);
 
   return {
     subjects,
@@ -80,12 +82,12 @@ export const useSubjects = () => {
   };
 };
 
-export const useRecords = (params = {}) => {
+export const useRecords = (params = EMPTY_PARAMS) => {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchRecords = async (newParams = {}) => {
+  const fetchRecords = useCallback(async (newParams = {}) => {
     setLoading(true);
     setError(null);
     try {
@@ -96,7 +98,7 @@ export const useRecords = (params = {}) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params]);
 
   const createRecord = async (recordData) => {
     setLoading(true);
@@ -146,7 +148,7 @@ export const useRecords = (params = {}) => {
 
   useEffect(() => {
     fetchRecords();
-  }, []);
+  }, [fetchRecords]);
 
   return {
     records,
@@ -164,7 +166,7 @@ export const useProgressDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -175,11 +177,11 @@ export const useProgressDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [fetchDashboardData]);
 
   return {
     dashboardData,

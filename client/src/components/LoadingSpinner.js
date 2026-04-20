@@ -18,7 +18,7 @@ const LoadingSpinner = ({ size = 'md', text = 'Loading...' }) => {
         <span className="sr-only">Loading...</span>
       </div>
       {text && (
-        <p className="mt-4 text-[#A0A3BD] text-sm font-medium">{text}</p>
+        <p className="mt-4 text-sm font-medium text-[#62574d]">{text}</p>
       )}
     </div>
   );

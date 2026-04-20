@@ -142,6 +142,16 @@ export const kuppiAdService = {
     }
   },
 
+  // Process payment and enroll student in class
+  processPaymentAndEnroll: async (classId, paymentDetails = {}) => {
+    try {
+      const response = await kuppiAdAPI.post(`/payment/${classId}`, paymentDetails);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || error.message || 'Failed to process payment and enrollment');
+    }
+  },
+
   // Unenroll student from class
   unenrollClass: async (classId) => {
     try {

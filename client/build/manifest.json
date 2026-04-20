@@ -1,0 +1,76 @@
+{
+  "short_name": "Uni-Connect",
+  "name": "Uni-Connect - Student Collaboration Platform",
+  "description": "A comprehensive platform for university students to collaborate, share resources, and manage their academic progress",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#FF7A00",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["education", "social", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Groups",
+      "short_name": "Groups",
+      "description": "Create and join study groups",
+      "url": "/groups",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Resources",
+      "short_name": "Resources", 
+      "description": "Share and discover learning resources",
+      "url": "/resources",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Skills",
+      "short_name": "Skills",
+      "description": "Find study partners and collaborate",
+      "url": "/skills", 
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Progress",
+      "short_name": "Progress",
+      "description": "Track academic progress and tasks",
+      "url": "/progress",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Uni-Connect desktop view"
+    },
+    {
+      "src": "screenshot-mobile.png", 
+      "sizes": "375x667",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Uni-Connect mobile view"
+    }
+  ]
+}

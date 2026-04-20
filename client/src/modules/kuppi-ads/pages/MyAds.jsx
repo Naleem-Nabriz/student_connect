@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { useMyKuppiAds } from '../hooks/useKuppiAds';
 import KuppiAdCard from '../components/KuppiAdCard';
@@ -8,11 +9,11 @@ import LoadingSpinner from '../../../components/LoadingSpinner';
 
 const MyAds = () => {
   const { user } = useAuth();
-  console.log('MyAds component - user:', user);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [sortBy, setSortBy] = useState('createdAt');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const currentUserId = user?._id || user?.id;
 
   const params = useMemo(() => ({
     status: filterStatus,
@@ -20,8 +21,7 @@ const MyAds = () => {
     sortOrder: 'desc'
   }), [filterStatus, sortBy]);
 
-  const { ads, loading, error, fetchAds } = useMyKuppiAds(user?._id, params);
-  console.log('MyAds component - ads:', ads, 'loading:', loading, 'error:', error);
+  const { ads, loading, error, fetchAds } = useMyKuppiAds(currentUserId, params);
 
   const filteredAds = ads.filter(ad => {
     const matchesSearch = ad.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -47,48 +47,46 @@ const MyAds = () => {
   if (!user) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500">Please log in to view your advertisements.</p>
+        <p className="text-[#85786c]">Please log in to view your advertisements.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 rounded-[28px] border border-[#d8e4e6] bg-[#fffaf2] p-5 shadow-[0_18px_45px_rgba(61,61,61,0.06)] md:p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Advertisements</h1>
-          <p className="text-gray-600 mt-1">Manage your kuppi class advertisements</p>
+          <h1 className="text-3xl font-bold tracking-tight text-[#3D3D3D]">My Advertisements</h1>
+          <p className="mt-2 text-sm text-[#62574d]">Manage your kuppi class advertisements and track approval status.</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="btn-primary flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+          className="flex items-center rounded-full bg-[linear-gradient(135deg,#0077B6,#E07A5F)] px-5 py-2.5 text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
         >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8 8H8a2 2 0 008-2v2a2 2 0 00-2 2v6a2 2 0 002-2l-3 3a2 2 0 004-2l-3-3a2 2 0 002-2z" />
-          </svg>
+          <Plus className="w-4 h-4 mr-2" />
           Create Advertisement
         </button>
       </div>
 
       {/* Navigation */}
-      <div className="flex flex-wrap gap-4 p-4 bg-white rounded-lg border border-gray-200">
+      <div className="flex flex-wrap gap-4 rounded-[24px] border border-[#eadfce] bg-white/80 p-4">
         <Link
           to="/kuppi"
-          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+          className="rounded-full bg-[#efe4d8] px-4 py-2 text-[#5d544d] transition-colors hover:bg-[#e4d6c6]"
         >
           Browse Ads
         </Link>
         <Link
           to="/kuppi/my"
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          className="rounded-full bg-[#0077B6] px-4 py-2 text-white transition-colors hover:bg-[#005f92]"
         >
           My Ads
         </Link>
         {user?.role === 'admin' && (
           <Link
             to="/kuppi/admin"
-            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+            className="rounded-full bg-[#E07A5F] px-4 py-2 text-white transition-colors hover:bg-[#c96a52]"
           >
             Admin Dashboard
           </Link>
@@ -96,23 +94,23 @@ const MyAds = () => {
       </div>
 
       {/* Status Summary */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <h2 className="text-lg font-semibold mb-4">Status Summary</h2>
+      <div className="mb-6 rounded-[24px] border border-[#eadfce] bg-white/85 p-4 shadow-[0_16px_35px_rgba(61,61,61,0.08)]">
+        <h2 className="mb-4 text-lg font-semibold text-[#3D3D3D]">Status Summary</h2>
         <div className="grid grid-cols-3 gap-4 text-center">
-          <div className="p-4 bg-yellow-100 rounded-lg">
-            <div className="text-2xl font-bold text-yellow-800">{getStatusCount().pending}</div>
-            <div className="text-sm text-yellow-700 mt-1">Pending</div>
-            <div className="text-xs text-yellow-600">Waiting for admin approval</div>
+          <div className="rounded-[20px] bg-[#fff1cc] p-4">
+            <div className="text-2xl font-bold text-[#8a6a10]">{getStatusCount().pending}</div>
+            <div className="mt-1 text-sm text-[#8a6a10]">Pending</div>
+            <div className="text-xs text-[#a88619]">Waiting for admin approval</div>
           </div>
-          <div className="p-4 bg-green-100 rounded-lg">
-            <div className="text-2xl font-bold text-green-800">{getStatusCount().approved}</div>
-            <div className="text-sm text-green-700 mt-1">Approved</div>
-            <div className="text-xs text-green-600">Visible to all students</div>
+          <div className="rounded-[20px] bg-[#d9ecf7] p-4">
+            <div className="text-2xl font-bold text-[#0b5f8f]">{getStatusCount().approved}</div>
+            <div className="mt-1 text-sm text-[#0b5f8f]">Approved</div>
+            <div className="text-xs text-[#2d7aa4]">Visible to all students</div>
           </div>
-          <div className="p-4 bg-red-100 rounded-lg">
-            <div className="text-2xl font-bold text-red-800">{getStatusCount().rejected}</div>
-            <div className="text-sm text-red-700 mt-1">Rejected</div>
-            <div className="text-xs text-red-600">Not visible publicly</div>
+          <div className="rounded-[20px] bg-[#f6e3dc] p-4">
+            <div className="text-2xl font-bold text-[#b85f47]">{getStatusCount().rejected}</div>
+            <div className="mt-1 text-sm text-[#b85f47]">Rejected</div>
+            <div className="text-xs text-[#c66f57]">Not visible publicly</div>
           </div>
         </div>
       </div>
@@ -125,14 +123,14 @@ const MyAds = () => {
             placeholder="Search your ads..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full rounded-full border border-[#eadfce] bg-white px-4 py-3 text-[#3D3D3D] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/20"
           />
         </div>
         <div className="min-w-[150px]">
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full rounded-full border border-[#eadfce] bg-white px-4 py-3 text-[#3D3D3D] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/20"
           >
             <option value="">All Status</option>
             <option value="pending">Pending</option>
@@ -144,7 +142,7 @@ const MyAds = () => {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full rounded-full border border-[#eadfce] bg-white px-4 py-3 text-[#3D3D3D] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/20"
           >
             <option value="createdAt">Latest First</option>
             <option value="price">Price: Low to High</option>
@@ -157,11 +155,11 @@ const MyAds = () => {
       {loading && filteredAds.length === 0 ? (
         <LoadingSpinner text="Loading your advertisements..." />
       ) : error ? (
-        <div className="text-center py-8 text-red-600">
+        <div className="rounded-[24px] border border-[#f6e3dc] bg-[#fff1ed] py-8 text-center text-[#b85f47]">
           Error: {error}
         </div>
       ) : filteredAds.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="rounded-[24px] border border-[#eadfce] bg-white/70 py-8 text-center text-[#85786c]">
           No advertisements found matching your criteria.
         </div>
       ) : (

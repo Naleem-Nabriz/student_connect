@@ -36,42 +36,48 @@ export const recordValidationRules = {
   subjectId: {
     required: 'Subject is required',
   },
-  marks: {
+  quizMarks: {
     min: {
       value: 0,
-      message: 'Marks cannot be less than 0',
+      message: 'Quiz marks cannot be less than 0',
     },
     max: {
       value: 100,
-      message: 'Marks cannot exceed 100',
+      message: 'Quiz marks cannot exceed 100',
     },
   },
-  attendance: {
+  midtermMarks: {
     min: {
       value: 0,
-      message: 'Attendance cannot be less than 0',
+      message: 'Mid term marks cannot be less than 0',
     },
     max: {
       value: 100,
-      message: 'Attendance cannot exceed 100',
+      message: 'Mid term marks cannot exceed 100',
     },
   },
-  assignmentScore: {
+  assignmentMarks: {
     min: {
       value: 0,
-      message: 'Assignment score cannot be less than 0',
+      message: 'Assignment marks cannot be less than 0',
     },
     max: {
       value: 100,
-      message: 'Assignment score cannot exceed 100',
+      message: 'Assignment marks cannot exceed 100',
+    },
+  },
+  finalMarks: {
+    min: {
+      value: 0,
+      message: 'Final marks cannot be less than 0',
+    },
+    max: {
+      value: 100,
+      message: 'Final marks cannot exceed 100',
     },
   },
   testType: {
     validate: (value) => {
-      const validTypes = ['quiz', 'midterm', 'final', 'assignment', 'project'];
-      if (!validTypes.includes(value)) {
-        return 'Invalid test type';
-      }
       return true;
     },
   },
@@ -119,33 +125,36 @@ export const validateRecord = (data) => {
     errors.subjectId = recordValidationRules.subjectId.required;
   }
 
-  if (data.marks !== undefined) {
-    if (data.marks < 0) {
-      errors.marks = recordValidationRules.marks.min.message;
-    } else if (data.marks > 100) {
-      errors.marks = recordValidationRules.marks.max.message;
+  if (data.quizMarks !== undefined) {
+    if (data.quizMarks < 0) {
+      errors.quizMarks = recordValidationRules.quizMarks.min.message;
+    } else if (data.quizMarks > 100) {
+      errors.quizMarks = recordValidationRules.quizMarks.max.message;
     }
   }
 
-  if (data.attendance !== undefined) {
-    if (data.attendance < 0) {
-      errors.attendance = recordValidationRules.attendance.min.message;
-    } else if (data.attendance > 100) {
-      errors.attendance = recordValidationRules.attendance.max.message;
+  if (data.midtermMarks !== undefined) {
+    if (data.midtermMarks < 0) {
+      errors.midtermMarks = recordValidationRules.midtermMarks.min.message;
+    } else if (data.midtermMarks > 100) {
+      errors.midtermMarks = recordValidationRules.midtermMarks.max.message;
     }
   }
 
-  if (data.assignmentScore !== undefined) {
-    if (data.assignmentScore < 0) {
-      errors.assignmentScore = recordValidationRules.assignmentScore.min.message;
-    } else if (data.assignmentScore > 100) {
-      errors.assignmentScore = recordValidationRules.assignmentScore.max.message;
+  if (data.assignmentMarks !== undefined) {
+    if (data.assignmentMarks < 0) {
+      errors.assignmentMarks = recordValidationRules.assignmentMarks.min.message;
+    } else if (data.assignmentMarks > 100) {
+      errors.assignmentMarks = recordValidationRules.assignmentMarks.max.message;
     }
   }
 
-  const testTypeValidation = recordValidationRules.testType.validate(data.testType);
-  if (testTypeValidation !== true) {
-    errors.testType = testTypeValidation;
+  if (data.finalMarks !== undefined) {
+    if (data.finalMarks < 0) {
+      errors.finalMarks = recordValidationRules.finalMarks.min.message;
+    } else if (data.finalMarks > 100) {
+      errors.finalMarks = recordValidationRules.finalMarks.max.message;
+    }
   }
 
   if (data.notes && data.notes.length > 500) {

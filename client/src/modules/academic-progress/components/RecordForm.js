@@ -1,60 +1,63 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { X, Calendar } from 'lucide-react';
 
 const RecordForm = ({ record, subjects, onSubmit, onCancel, loading = false }) => {
-  
   const {
     register,
     handleSubmit,
-    watch,
     formState: { isSubmitting },
-    setValue,
   } = useForm({
+    shouldUnregister: true,
     defaultValues: record || {
       subjectId: '',
-      marks: '',
+      quizMarks: '',
+      midtermMarks: '',
+      assignmentMarks: '',
+      finalMarks: '',
       attendance: '',
-      assignmentScore: '',
-      testType: 'quiz',
       date: new Date().toISOString().split('T')[0],
       notes: '',
     },
   });
 
-  const testTypes = [
-    { value: 'quiz', label: 'Quiz' },
-    { value: 'midterm', label: 'Midterm' },
-    { value: 'final', label: 'Final' },
-    { value: 'assignment', label: 'Assignment' },
-    { value: 'project', label: 'Project' },
-  ];
-
-  const notesValue = watch('notes') || '';
-  const formValues = watch();
+  const subjectIdField = register('subjectId');
+  const dateField = register('date');
 
   const onFormSubmit = (data) => {
     const formData = {
       ...data,
-      marks: data.marks ? parseFloat(data.marks) : undefined,
-      attendance: data.attendance ? parseFloat(data.attendance) : undefined,
-      assignmentScore: data.assignmentScore ? parseFloat(data.assignmentScore) : undefined,
+      quizMarks: data.quizMarks !== '' ? parseFloat(data.quizMarks) : undefined,
+      midtermMarks: data.midtermMarks !== '' ? parseFloat(data.midtermMarks) : undefined,
+      assignmentMarks: data.assignmentMarks !== '' ? parseFloat(data.assignmentMarks) : undefined,
+      finalMarks: data.finalMarks !== '' ? parseFloat(data.finalMarks) : undefined,
+      attendance: data.attendance !== '' ? parseFloat(data.attendance) : undefined,
     };
 
     onSubmit(formData);
   };
 
+  const handleInvalid = (event) => {
+    if (event.target.validity.valueMissing) {
+      event.target.setCustomValidity('Please fill this field');
+    }
+  };
+
+  const clearValidationMessage = (event) => {
+    event.target.setCustomValidity('');
+  };
+
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#3D3D3D]/45 p-4 backdrop-blur-sm">
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[28px] border border-[#eadfce] bg-[#fffaf4] shadow-[0_30px_80px_rgba(61,61,61,0.18)]">
+        <div className="flex items-center justify-between border-b border-[#eadfce] bg-[linear-gradient(135deg,rgba(224,122,95,0.10),rgba(242,201,76,0.14))] p-6">
+          <h2 className="text-xl font-semibold text-[#3D3D3D]">
             {record ? 'Edit Record' : 'Add New Record'}
           </h2>
           <button
             onClick={onCancel}
-            className="p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-full transition-colors"
+            className="rounded-full p-2 text-[#85786c] transition-colors hover:bg-white/70 hover:text-[#3D3D3D]"
           >
             <X className="h-5 w-5" />
           </button>
@@ -66,8 +69,13 @@ const RecordForm = ({ record, subjects, onSubmit, onCancel, loading = false }) =
               Subject *
             </label>
             <select
-              {...register('subjectId')}
+              {...subjectIdField}
               required
+              onInvalid={handleInvalid}
+              onChange={(event) => {
+                subjectIdField.onChange(event);
+                clearValidationMessage(event);
+              }}
               className="form-input block w-full px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="">Select a subject</option>
@@ -80,65 +88,80 @@ const RecordForm = ({ record, subjects, onSubmit, onCancel, loading = false }) =
           </div>
 
           <div>
-            <label htmlFor="testType" className="block text-sm font-medium text-gray-700 mb-1">
-              Test Type
+            <label htmlFor="quizMarks" className="block text-sm font-medium text-gray-700 mb-1">
+              Quiz Marks
             </label>
-            <select
-              {...register('testType')}
+            <input
+              {...register('quizMarks')}
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
               className="form-input block w-full px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500"
-            >
-              {testTypes.map(type => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
+              placeholder="85"
+            />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label htmlFor="marks" className="block text-sm font-medium text-gray-700 mb-1">
-                Marks
-              </label>
-              <input
-                {...register('marks')}
-                type="number"
-                min="0"
-                max="100"
-                step="0.01"
-                className="form-input block w-full px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500"
-                placeholder="85"
-              />
-            </div>
+          <div>
+            <label htmlFor="midtermMarks" className="block text-sm font-medium text-gray-700 mb-1">
+              Mid Term Marks
+            </label>
+            <input
+              {...register('midtermMarks')}
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              className="form-input block w-full px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500"
+              placeholder="78"
+            />
+          </div>
 
-            <div>
-              <label htmlFor="attendance" className="block text-sm font-medium text-gray-700 mb-1">
-                Attendance %
-              </label>
-              <input
-                {...register('attendance')}
-                type="number"
-                min="0"
-                max="100"
-                step="0.1"
-                className="form-input block w-full px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500"
-                placeholder="90"
-              />
-            </div>
+          <div>
+            <label htmlFor="assignmentMarks" className="block text-sm font-medium text-gray-700 mb-1">
+              Assignment Marks
+            </label>
+            <input
+              {...register('assignmentMarks')}
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              className="form-input block w-full px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500"
+              placeholder="90"
+            />
+          </div>
 
-            <div>
-              <label htmlFor="assignmentScore" className="block text-sm font-medium text-gray-700 mb-1">
-                Assignment
-              </label>
-              <input
-                {...register('assignmentScore')}
-                type="number"
-                min="0"
-                max="100"
-                step="0.01"
-                className="form-input block w-full px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500"
-                placeholder="88"
-              />
+          <div>
+            <label htmlFor="finalMarks" className="block text-sm font-medium text-gray-700 mb-1">
+              Final Marks
+            </label>
+            <input
+              {...register('finalMarks')}
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              className="form-input block w-full px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500"
+              placeholder="88"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="attendance" className="block text-sm font-medium text-gray-700 mb-1">
+              Attendance
+            </label>
+            <input
+              {...register('attendance')}
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              className="form-input block w-full px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500"
+              placeholder="92"
+            />
+            <div className="mt-1 rounded-2xl border border-[#eadfce] bg-[#fffaf2] px-3 py-2 text-sm text-[#62574d]">
+              Enter all four mark types and attendance together in one record.
             </div>
           </div>
 
@@ -147,11 +170,16 @@ const RecordForm = ({ record, subjects, onSubmit, onCancel, loading = false }) =
               Date
             </label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-[#85786c]" />
               <input
-                {...register('date')}
+                {...dateField}
                 type="date"
                 required
+                onInvalid={handleInvalid}
+                onChange={(event) => {
+                  dateField.onChange(event);
+                  clearValidationMessage(event);
+                }}
                 className="form-input block w-full pl-10 pr-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
@@ -175,14 +203,14 @@ const RecordForm = ({ record, subjects, onSubmit, onCancel, loading = false }) =
               type="button"
               onClick={onCancel}
               disabled={isSubmitting || loading}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-full border border-[#d9cab6] bg-white px-5 py-2.5 text-sm font-medium text-[#5d544d] transition-colors hover:bg-[#fff7ed] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/20 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-full border border-transparent bg-[#0077B6] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#005f92] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/20 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting || loading ? (
                 <div className="flex items-center">

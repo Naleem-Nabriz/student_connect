@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { groupService } from '../services/groupService';
 
 export const useGroups = (params = {}) => {
@@ -12,23 +12,23 @@ export const useGroups = (params = {}) => {
     pages: 0,
   });
 
-  const fetchGroups = async (newParams = {}) => {
+  const fetchGroups = useCallback(async (newParams = {}) => {
     setLoading(true);
     setError(null);
     try {
       const response = await groupService.getGroups({ ...params, ...newParams });
       setGroups(response.groups || []);
-      setPagination(response.pagination || pagination);
+      setPagination(prev => response.pagination || prev);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [params]);
 
   useEffect(() => {
     fetchGroups();
-  }, []);
+  }, [fetchGroups]);
 
   const createGroup = async (groupData) => {
     setLoading(true);
@@ -110,6 +110,40 @@ export const useGroups = (params = {}) => {
     }
   };
 
+  const acceptJoinRequest = async (groupId, userId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const updatedGroup = await groupService.acceptJoinRequest(groupId, userId);
+      setGroups(prev => prev.map(group =>
+        group._id === groupId ? updatedGroup : group
+      ));
+      return updatedGroup;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const rejectJoinRequest = async (groupId, userId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const updatedGroup = await groupService.rejectJoinRequest(groupId, userId);
+      setGroups(prev => prev.map(group =>
+        group._id === groupId ? updatedGroup : group
+      ));
+      return updatedGroup;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     groups,
     loading,
@@ -120,6 +154,8 @@ export const useGroups = (params = {}) => {
     updateGroup,
     deleteGroup,
     joinGroup,
+    acceptJoinRequest,
+    rejectJoinRequest,
     leaveGroup,
   };
 };
@@ -129,7 +165,7 @@ export const useGroup = (id) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchGroup = async () => {
+  const fetchGroup = useCallback(async () => {
     if (!id) return;
     
     setLoading(true);
@@ -142,11 +178,11 @@ export const useGroup = (id) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     fetchGroup();
-  }, [id]);
+  }, [fetchGroup]);
 
   return {
     group,

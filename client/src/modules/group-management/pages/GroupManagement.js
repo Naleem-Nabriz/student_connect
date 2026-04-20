@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Routes, Route } from 'react-router-dom';
 import { Plus, Search, Filter } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useGroups } from '../hooks/useGroups';
@@ -8,12 +7,21 @@ import GroupCard from '../components/GroupCard';
 import GroupForm from '../components/GroupForm';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 
+const getEntityId = (entity) => {
+  if (!entity) return null;
+  if (typeof entity === 'string') return entity;
+  return entity._id || entity.id || null;
+};
+
 const GroupList = () => {
   const { user } = useAuth();
+  const currentUserId = user?.id || user?._id || null;
+  const isAdmin = user?.role === 'admin';
   const [showForm, setShowForm] = useState(false);
   const [editingGroup, setEditingGroup] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSubject, setFilterSubject] = useState('');
+  const [isSubmittingGroup, setIsSubmittingGroup] = useState(false);
   
   const {
     groups,
@@ -23,27 +31,34 @@ const GroupList = () => {
     updateGroup,
     deleteGroup,
     joinGroup,
+    acceptJoinRequest,
+    rejectJoinRequest,
     leaveGroup,
-    fetchGroups,
   } = useGroups();
 
   const handleCreateGroup = async (groupData) => {
+    setIsSubmittingGroup(true);
     try {
       await createGroup(groupData);
       setShowForm(false);
       toast.success('Group created successfully!');
     } catch (error) {
       toast.error(error.message);
+    } finally {
+      setIsSubmittingGroup(false);
     }
   };
 
   const handleUpdateGroup = async (groupData) => {
+    setIsSubmittingGroup(true);
     try {
       await updateGroup(editingGroup._id, groupData);
       setEditingGroup(null);
       toast.success('Group updated successfully!');
     } catch (error) {
       toast.error(error.message);
+    } finally {
+      setIsSubmittingGroup(false);
     }
   };
 
@@ -59,7 +74,25 @@ const GroupList = () => {
   const handleJoinGroup = async (id) => {
     try {
       await joinGroup(id);
-      toast.success('Successfully joined the group!');
+      toast.success('Join request sent to the group creator.');
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const handleAcceptRequest = async (groupId, userId) => {
+    try {
+      await acceptJoinRequest(groupId, userId);
+      toast.success('Student added to the group.');
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const handleRejectRequest = async (groupId, userId) => {
+    try {
+      await rejectJoinRequest(groupId, userId);
+      toast.success('Join request declined.');
     } catch (error) {
       toast.error(error.message);
     }
@@ -152,7 +185,10 @@ const GroupList = () => {
               onLeave={handleLeaveGroup}
               onEdit={setEditingGroup}
               onDelete={handleDeleteGroup}
-              isOwner={group.createdBy?._id === user?.id}
+              onAcceptRequest={handleAcceptRequest}
+              onRejectRequest={handleRejectRequest}
+              isOwner={getEntityId(group.createdBy) === currentUserId}
+              canDelete={getEntityId(group.createdBy) === currentUserId || isAdmin}
             />
           ))}
         </div>
@@ -190,7 +226,7 @@ const GroupList = () => {
             setShowForm(false);
             setEditingGroup(null);
           }}
-          loading={loading}
+          loading={isSubmittingGroup}
         />
       )}
     </div>

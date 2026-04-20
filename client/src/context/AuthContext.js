@@ -1,6 +1,14 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { authAPI } from '../services/api';
 
+const normalizeUser = (user) => {
+  if (!user) return null;
+  return {
+    ...user,
+    id: user.id || user._id || null,
+  };
+};
+
 // Initial state
 const initialState = {
   user: null,
@@ -29,7 +37,7 @@ const authReducer = (state, action) => {
       return {
         ...state,
         loading: false,
-        user: action.payload.user,
+        user: normalizeUser(action.payload.user),
         token: action.payload.token,
         error: null,
       };

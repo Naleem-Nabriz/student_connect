@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link, BookOpen, ExternalLink, Star, Users, Clock, Tag } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link, BookOpen, ExternalLink, Star, Clock, Tag } from 'lucide-react';
 import { resourceRecommendationService } from '../../../services/resourceRecommendationService';
 
 const ResourceRecommendations = ({ groupData, onResourceSelect, className = '' }) => {
@@ -7,16 +7,10 @@ const ResourceRecommendations = ({ groupData, onResourceSelect, className = '' }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (groupData && groupData.subject) {
-      fetchRecommendations();
-    }
-  }, [groupData]);
-
-  const fetchRecommendations = async () => {
+  const fetchRecommendations = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const recommendedResources = await resourceRecommendationService.getRecommendedResources(groupData);
       setRecommendations(recommendedResources);
@@ -26,7 +20,13 @@ const ResourceRecommendations = ({ groupData, onResourceSelect, className = '' }
     } finally {
       setLoading(false);
     }
-  };
+  }, [groupData]);
+
+  useEffect(() => {
+    if (groupData && groupData.subject) {
+      fetchRecommendations();
+    }
+  }, [groupData, fetchRecommendations]);
 
   const handleResourceClick = (resource) => {
     if (onResourceSelect) {
@@ -39,7 +39,6 @@ const ResourceRecommendations = ({ groupData, onResourceSelect, className = '' }
       case 'link':
         return <ExternalLink className="h-4 w-4" />;
       case 'file':
-        return <BookOpen className="h-4 w-4" />;
       case 'document':
         return <BookOpen className="h-4 w-4" />;
       default:
@@ -66,7 +65,7 @@ const ResourceRecommendations = ({ groupData, onResourceSelect, className = '' }
         <div className="animate-pulse">
           <div className="h-6 bg-gray-200 rounded mb-4"></div>
           <div className="space-y-3">
-            {[1, 2, 3].map(i => (
+            {[1, 2, 3].map((i) => (
               <div key={i} className="h-16 bg-gray-200 rounded"></div>
             ))}
           </div>
@@ -108,9 +107,7 @@ const ResourceRecommendations = ({ groupData, onResourceSelect, className = '' }
   return (
     <div className={`bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Recommended Resources
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900">Recommended Resources</h3>
         <div className="flex items-center text-sm text-gray-500">
           <Star className="h-4 w-4 mr-1 text-yellow-500" />
           AI-powered suggestions
@@ -137,11 +134,9 @@ const ResourceRecommendations = ({ groupData, onResourceSelect, className = '' }
                     </span>
                   )}
                 </div>
-                
-                <h4 className="text-sm font-medium text-gray-900 truncate">
-                  {resource.title}
-                </h4>
-                
+
+                <h4 className="text-sm font-medium text-gray-900 truncate">{resource.title}</h4>
+
                 <p className="text-xs text-gray-600 mt-1 line-clamp-2">
                   {resource.description || 'No description available'}
                 </p>
@@ -192,10 +187,10 @@ const ResourceRecommendations = ({ groupData, onResourceSelect, className = '' }
       {recommendations.length > 0 && (
         <div className="mt-4 pt-4 border-t border-gray-200">
           <button
-            onClick={() => window.location.href = '/resources'}
+            onClick={() => { window.location.href = '/resources'; }}
             className="text-sm text-primary-600 hover:text-primary-700 font-medium"
           >
-            View all resources →
+            View all resources &rarr;
           </button>
         </div>
       )}

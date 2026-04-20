@@ -39,17 +39,19 @@ const updateSubjectValidation = [
 // Record validation
 const createRecordValidation = [
   body('subjectId').notEmpty().withMessage('Subject ID is required'),
-  body('marks').optional().isInt({ min: 0, max: 100 }).withMessage('Marks must be between 0 and 100'),
-  body('attendance').optional().isInt({ min: 0, max: 100 }).withMessage('Attendance must be between 0 and 100'),
-  body('assignmentScore').optional().isInt({ min: 0, max: 100 }).withMessage('Assignment score must be between 0 and 100'),
-  body('testType').optional().isIn(['quiz', 'midterm', 'final', 'assignment', 'project']).withMessage('Invalid test type')
+  body('quizMarks').optional().isFloat({ min: 0, max: 100 }).withMessage('Quiz marks must be between 0 and 100'),
+  body('midtermMarks').optional().isFloat({ min: 0, max: 100 }).withMessage('Midterm marks must be between 0 and 100'),
+  body('assignmentMarks').optional().isFloat({ min: 0, max: 100 }).withMessage('Assignment marks must be between 0 and 100'),
+  body('finalMarks').optional().isFloat({ min: 0, max: 100 }).withMessage('Final marks must be between 0 and 100'),
+  body('attendance').optional().isFloat({ min: 0, max: 100 }).withMessage('Attendance must be between 0 and 100'),
 ];
 
 const updateRecordValidation = [
-  body('marks').optional().isInt({ min: 0, max: 100 }).withMessage('Marks must be between 0 and 100'),
-  body('attendance').optional().isInt({ min: 0, max: 100 }).withMessage('Attendance must be between 0 and 100'),
-  body('assignmentScore').optional().isInt({ min: 0, max: 100 }).withMessage('Assignment score must be between 0 and 100'),
-  body('testType').optional().isIn(['quiz', 'midterm', 'final', 'assignment', 'project']).withMessage('Invalid test type')
+  body('quizMarks').optional().isFloat({ min: 0, max: 100 }).withMessage('Quiz marks must be between 0 and 100'),
+  body('midtermMarks').optional().isFloat({ min: 0, max: 100 }).withMessage('Midterm marks must be between 0 and 100'),
+  body('assignmentMarks').optional().isFloat({ min: 0, max: 100 }).withMessage('Assignment marks must be between 0 and 100'),
+  body('finalMarks').optional().isFloat({ min: 0, max: 100 }).withMessage('Final marks must be between 0 and 100'),
+  body('attendance').optional().isFloat({ min: 0, max: 100 }).withMessage('Attendance must be between 0 and 100')
 ];
 
 // Subject routes

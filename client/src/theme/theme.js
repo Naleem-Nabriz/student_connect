@@ -1,44 +1,38 @@
 export const theme = {
   colors: {
-    // Background Colors
-    primaryBg: '#0B0B0F',
-    secondaryBg: '#111217',
-    cardBg: '#1A1C22',
-    
-    // Gradient Colors
-    gradientStart: '#FF7A00',
-    gradientEnd: '#FFB800',
-    
-    // Text Colors
-    textPrimary: '#FFFFFF',
-    textSecondary: '#A0A3BD',
-    
-    // Border Colors
-    border: '#2A2D36',
+    primaryBg: '#FDF6EC',
+    secondaryBg: '#fffaf2',
+    cardBg: '#fffdf8',
+    gradientStart: '#0077B6',
+    gradientEnd: '#E07A5F',
+    accent: '#F2C94C',
+    textPrimary: '#3D3D3D',
+    textSecondary: '#62574d',
+    border: '#eadfce',
     
     // Status Colors
-    success: '#22C55E',
-    warning: '#F59E0B',
-    danger: '#EF4444',
-    info: '#3B82F6',
+    success: '#0077B6',
+    warning: '#F2C94C',
+    danger: '#E07A5F',
+    info: '#0077B6',
     
     // Semantic Colors
-    pending: '#F59E0B',
-    approved: '#22C55E',
-    rejected: '#EF4444',
+    pending: '#F2C94C',
+    approved: '#0077B6',
+    rejected: '#E07A5F',
   },
   
   gradients: {
-    primary: 'linear-gradient(90deg, #FF7A00, #FFB800)',
-    success: 'linear-gradient(90deg, #22C55E, #16A34A)',
-    danger: 'linear-gradient(90deg, #EF4444, #DC2626)',
-    info: 'linear-gradient(90deg, #3B82F6, #2563EB)',
+    primary: 'linear-gradient(90deg, #0077B6, #E07A5F)',
+    success: 'linear-gradient(90deg, #0077B6, #4f9fc6)',
+    danger: 'linear-gradient(90deg, #E07A5F, #c96a52)',
+    info: 'linear-gradient(90deg, #F2C94C, #ddb73f)',
   },
   
   shadows: {
-    card: '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)',
-    cardHover: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)',
-    navbar: '0 4px 6px -1px rgba(0, 0, 0, 0.5)',
+    card: '0 10px 30px rgba(61, 61, 61, 0.08)',
+    cardHover: '0 20px 45px rgba(61, 61, 61, 0.12)',
+    navbar: '0 12px 30px rgba(61, 61, 61, 0.08)',
   },
   
   borderRadius: {

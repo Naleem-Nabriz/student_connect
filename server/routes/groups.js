@@ -6,6 +6,8 @@ const {
   getGroups,
   getGroupById,
   joinGroup,
+  acceptJoinRequest,
+  rejectJoinRequest,
   leaveGroup,
   updateGroup,
   deleteGroup
@@ -31,6 +33,8 @@ router.post('/', auth, createGroupValidation, createGroup);
 router.get('/', auth, getGroups);
 router.get('/:id', auth, getGroupById);
 router.post('/:id/join', auth, joinGroup);
+router.post('/:id/requests/:userId/accept', auth, acceptJoinRequest);
+router.post('/:id/requests/:userId/reject', auth, rejectJoinRequest);
 router.post('/:id/leave', auth, leaveGroup);
 router.put('/:id', auth, updateGroupValidation, updateGroup);
 router.delete('/:id', auth, deleteGroup);

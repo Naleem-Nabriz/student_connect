@@ -1,9 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Users, BookOpen, GraduationCap, Plus, Star, TrendingUp } from 'lucide-react';
 
 const Dashboard = () => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
 
   // Mock statistics data
   const stats = {
@@ -44,7 +46,7 @@ const Dashboard = () => {
       link: '/collaborations',
     },
     {
-      title: 'Subjects',
+      title: 'Academic Progress',
       value: stats.subjects,
       icon: TrendingUp,
       color: 'bg-orange-500',
@@ -55,7 +57,7 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-3 border-solid border-gray-300 border-t-[#FF7A00] rounded-full animate-spin"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#eadfce] border-t-[#0077B6]"></div>
       </div>
     );
   }
@@ -63,7 +65,7 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-[#FF7A00] to-[#FFB800] rounded-xl shadow-xl p-8 text-white">
+      <div className="rounded-[28px] bg-[linear-gradient(135deg,#0077B6,#E07A5F)] p-8 text-white shadow-[0_22px_60px_rgba(0,119,182,0.20)]">
         <h1 className="text-4xl font-bold mb-3">
           Welcome back, {user?.firstName}! 👋
         </h1>
@@ -79,15 +81,15 @@ const Dashboard = () => {
           return (
             <div
               key={stat.title}
-              className="bg-[#1A1C22] border border-[#2A2D36] rounded-xl shadow-lg p-6 cursor-pointer hover:shadow-xl hover:border-[#FF7A00] transition-all duration-300 transform hover:-translate-y-1"
-              onClick={() => (window.location.href = stat.link)}
+              className="cursor-pointer rounded-[24px] border border-[#eadfce] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(253,246,236,0.92))] p-6 shadow-[0_16px_35px_rgba(61,61,61,0.08)] transition-all duration-300 hover:-translate-y-1 hover:border-[#0077B6]/25 hover:shadow-[0_22px_45px_rgba(61,61,61,0.12)]"
+              onClick={() => navigate(stat.link)}
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-[#A0A3BD]">{stat.title}</p>
-                  <p className="text-2xl font-bold text-white mt-1">{stat.value}</p>
+                  <p className="text-sm font-medium text-[#62574d]">{stat.title}</p>
+                  <p className="mt-1 text-2xl font-bold text-[#3D3D3D]">{stat.value}</p>
                 </div>
-                <div className={`${stat.color} p-3 rounded-full bg-gradient-to-r from-[#FF7A00] to-[#FFB800]`}>
+                <div className="rounded-full bg-[linear-gradient(135deg,#0077B6,#E07A5F)] p-3">
                   <Icon className="h-6 w-6 text-white" />
                 </div>
               </div>
@@ -98,26 +100,26 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Quick Actions */}
-        <div className="bg-[#1A1C22] border border-[#2A2D36] rounded-xl shadow-lg p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Quick Actions</h2>
+        <div className="rounded-[24px] border border-[#eadfce] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(253,246,236,0.92))] p-6 shadow-[0_16px_35px_rgba(61,61,61,0.08)]">
+          <h2 className="mb-4 text-lg font-semibold text-[#3D3D3D]">Quick Actions</h2>
           <div className="space-y-3">
             <button
               onClick={() => (window.location.href = '/groups')}
-              className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-[#3B82F6] to-[#2563EB] text-white rounded-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+              className="w-full rounded-full bg-[#0077B6] px-4 py-3 text-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
             >
               <Plus className="h-4 w-4 mr-2" />
               Create Study Group
             </button>
             <button
               onClick={() => (window.location.href = '/resources')}
-              className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-[#22C55E] to-[#16A34A] text-white rounded-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+              className="w-full rounded-full bg-[#E07A5F] px-4 py-3 text-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
             >
               <Plus className="h-4 w-4 mr-2" />
               Upload Resource
             </button>
             <button
               onClick={() => (window.location.href = '/skills')}
-              className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] text-white rounded-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+              className="w-full rounded-full bg-[#F2C94C] px-4 py-3 text-[#5b4709] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
             >
               <Plus className="h-4 w-4 mr-2" />
               Find Study Partners
@@ -126,40 +128,40 @@ const Dashboard = () => {
         </div>
 
         {/* Recent Activity */}
-        <div className="lg:col-span-2 bg-[#1A1C22] border border-[#2A2D36] rounded-xl shadow-lg p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Recent Activity</h2>
+        <div className="lg:col-span-2 rounded-[24px] border border-[#eadfce] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(253,246,236,0.92))] p-6 shadow-[0_16px_35px_rgba(61,61,61,0.08)]">
+          <h2 className="mb-4 text-lg font-semibold text-[#3D3D3D]">Recent Activity</h2>
           <div className="space-y-4">
-            <div className="flex items-center space-x-3 p-3 bg-[#111217] rounded-lg">
+            <div className="flex items-center space-x-3 rounded-2xl bg-[#fffaf2] p-3">
               <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-gradient-to-r from-[#FF7A00] to-[#FFB800] rounded-full flex items-center justify-center">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[linear-gradient(135deg,#0077B6,#E07A5F)]">
                   <Users className="w-4 h-4 text-white" />
                 </div>
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-white">New study group created</p>
-                <p className="text-xs text-[#A0A3BD]">2 hours ago</p>
+                <p className="text-sm font-medium text-[#3D3D3D]">New study group created</p>
+                <p className="text-xs text-[#85786c]">2 hours ago</p>
               </div>
             </div>
-            <div className="flex items-center space-x-3 p-3 bg-[#111217] rounded-lg">
+            <div className="flex items-center space-x-3 rounded-2xl bg-[#fffaf2] p-3">
               <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-gradient-to-r from-[#22C55E] to-[#16A34A] rounded-full flex items-center justify-center">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[linear-gradient(135deg,#E07A5F,#F2C94C)]">
                   <BookOpen className="w-4 h-4 text-white" />
                 </div>
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-white">Resource uploaded</p>
-                <p className="text-xs text-[#A0A3BD]">5 hours ago</p>
+                <p className="text-sm font-medium text-[#3D3D3D]">Resource uploaded</p>
+                <p className="text-xs text-[#85786c]">5 hours ago</p>
               </div>
             </div>
-            <div className="flex items-center space-x-3 p-3 bg-[#111217] rounded-lg">
+            <div className="flex items-center space-x-3 rounded-2xl bg-[#fffaf2] p-3">
               <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-gradient-to-r from-[#3B82F6] to-[#2563EB] rounded-full flex items-center justify-center">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[linear-gradient(135deg,#0077B6,#4f9fc6)]">
                   <GraduationCap className="w-4 h-4 text-white" />
                 </div>
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-white">New skill request</p>
-                <p className="text-xs text-[#A0A3BD]">1 day ago</p>
+                <p className="text-sm font-medium text-[#3D3D3D]">New skill request</p>
+                <p className="text-xs text-[#85786c]">1 day ago</p>
               </div>
             </div>
           </div>
@@ -167,14 +169,14 @@ const Dashboard = () => {
       </div>
 
       {/* Tips Section */}
-      <div className="bg-gradient-to-r from-[#FF7A00] to-[#FFB800] rounded-xl p-6 border border-[#2A2D36]">
+      <div className="rounded-[24px] border border-[#eadfce] bg-[linear-gradient(135deg,rgba(242,201,76,0.28),rgba(224,122,95,0.18))] p-6">
         <div className="flex items-start space-x-3">
           <div className="p-2 bg-white/20 rounded-full">
             <Star className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-white mb-2">Pro Tips</h3>
-            <ul className="text-sm text-white/90 space-y-1">
+            <h3 className="mb-2 text-lg font-semibold text-[#3D3D3D]">Pro Tips</h3>
+            <ul className="space-y-1 text-sm text-[#62574d]">
               <li>• Join study groups to collaborate with peers</li>
               <li>• Upload and share helpful resources</li>
               <li>• Use skill matching to find study partners</li>

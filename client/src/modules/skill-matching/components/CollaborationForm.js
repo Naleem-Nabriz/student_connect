@@ -13,7 +13,6 @@ const CollaborationForm = ({ collaboration, onSubmit, onCancel, loading = false 
     register,
     handleSubmit,
     formState: { isSubmitting },
-    setValue,
   } = useForm({
     defaultValues: collaboration || {
       title: '',
@@ -39,7 +38,7 @@ const CollaborationForm = ({ collaboration, onSubmit, onCancel, loading = false 
     setRequiredSkills(newSkills);
   };
 
-  const onFormSubmit = (data) => {
+  const onFormSubmit = async (data) => {
     const formData = {
       ...data,
       requiredSkills: requiredSkills.filter(skill => skill.name.trim()),
@@ -52,7 +51,7 @@ const CollaborationForm = ({ collaboration, onSubmit, onCancel, loading = false 
     }
     
     setErrors({});
-    onSubmit(formData);
+    await onSubmit(formData);
   };
 
   const handleInputChange = (field) => {
@@ -65,15 +64,15 @@ const CollaborationForm = ({ collaboration, onSubmit, onCancel, loading = false 
   const today = new Date().toISOString().split('T')[0];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#3D3D3D]/45 p-4 backdrop-blur-sm">
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[28px] border border-[#eadfce] bg-[#fffaf4] shadow-[0_30px_80px_rgba(61,61,61,0.18)]">
+        <div className="flex items-center justify-between border-b border-[#eadfce] bg-[linear-gradient(135deg,rgba(224,122,95,0.10),rgba(242,201,76,0.14))] p-6">
+          <h2 className="text-xl font-semibold text-[#3D3D3D]">
             {collaboration ? 'Edit Collaboration Request' : 'Create Collaboration Request'}
           </h2>
           <button
             onClick={onCancel}
-            className="p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-full transition-colors"
+            className="rounded-full p-2 text-[#85786c] transition-colors hover:bg-white/70 hover:text-[#3D3D3D]"
           >
             <X className="h-5 w-5" />
           </button>
@@ -130,7 +129,7 @@ const CollaborationForm = ({ collaboration, onSubmit, onCancel, loading = false 
               <button
                 type="button"
                 onClick={addSkill}
-                className="flex items-center px-3 py-1 text-sm bg-primary-100 text-primary-700 rounded-md hover:bg-primary-200 transition-colors"
+                className="flex items-center rounded-full bg-[#d9ecf7] px-4 py-2 text-sm font-medium text-[#0b5f8f] transition-colors hover:bg-[#c9e2f1]"
               >
                 <Plus className="h-4 w-4 mr-1" />
                 Add Skill
@@ -139,7 +138,7 @@ const CollaborationForm = ({ collaboration, onSubmit, onCancel, loading = false 
             
             <div className="space-y-3">
               {requiredSkills.map((skill, index) => (
-                <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                <div key={index} className="flex items-center space-x-3 rounded-2xl border border-[#f0e1cf] bg-white/80 p-3">
                   <div className="flex-1">
                     <input
                       type="text"
@@ -164,7 +163,7 @@ const CollaborationForm = ({ collaboration, onSubmit, onCancel, loading = false 
                     <button
                       type="button"
                       onClick={() => removeSkill(index)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                      className="rounded-full p-2 text-[#b85f47] transition-colors hover:bg-[#f6e3dc]"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -208,14 +207,14 @@ const CollaborationForm = ({ collaboration, onSubmit, onCancel, loading = false 
               type="button"
               onClick={onCancel}
               disabled={isSubmitting || loading}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-full border border-[#d9cab6] bg-white px-5 py-2.5 text-sm font-medium text-[#5d544d] transition-colors hover:bg-[#fff7ed] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/20 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-full border border-transparent bg-[#0077B6] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#005f92] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/20 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting || loading ? (
                 <div className="flex items-center">

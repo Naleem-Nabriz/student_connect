@@ -1,6 +1,17 @@
 const { validationResult } = require('express-validator');
 const Group = require('../models/Group');
 
+const isMatchingMember = (member, userId) => member.toString() === userId;
+const isAdmin = (user) => user?.role === 'admin';
+const isMatchingRequest = (request, userId) => request.user.toString() === userId;
+
+const populateGroup = async (group) => {
+  await group.populate('createdBy', 'username firstName lastName');
+  await group.populate('members', 'username firstName lastName');
+  await group.populate('joinRequests.user', 'username firstName lastName');
+  return group;
+};
+
 const createGroup = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -20,8 +31,7 @@ const createGroup = async (req, res) => {
     });
 
     await group.save();
-    await group.populate('createdBy', 'username firstName lastName');
-    await group.populate('members', 'username firstName lastName');
+    await populateGroup(group);
 
     res.status(201).json(group);
   } catch (error) {
@@ -39,6 +49,7 @@ const getGroups = async (req, res) => {
     const groups = await Group.find({ isActive: true })
       .populate('createdBy', 'username firstName lastName')
       .populate('members', 'username firstName lastName')
+      .populate('joinRequests.user', 'username firstName lastName')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -64,7 +75,8 @@ const getGroupById = async (req, res) => {
   try {
     const group = await Group.findById(req.params.id)
       .populate('createdBy', 'username firstName lastName')
-      .populate('members', 'username firstName lastName');
+      .populate('members', 'username firstName lastName')
+      .populate('joinRequests.user', 'username firstName lastName');
 
     if (!group) {
       return res.status(404).json({ message: 'Group not found' });
@@ -85,18 +97,95 @@ const joinGroup = async (req, res) => {
       return res.status(404).json({ message: 'Group not found' });
     }
 
-    if (group.members.includes(req.user.id)) {
+    if (group.members.some((member) => isMatchingMember(member, req.user.id))) {
       return res.status(400).json({ message: 'You are already a member of this group' });
+    }
+
+    if (group.joinRequests.some((request) => isMatchingRequest(request, req.user.id))) {
+      return res.status(400).json({ message: 'You have already requested to join this group' });
     }
 
     if (group.members.length >= group.capacity) {
       return res.status(400).json({ message: 'Group is full' });
     }
 
-    group.members.push(req.user.id);
+    group.joinRequests.push({ user: req.user.id });
     await group.save();
 
-    await group.populate('members', 'username firstName lastName');
+    await populateGroup(group);
+
+    res.json(group);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const acceptJoinRequest = async (req, res) => {
+  try {
+    const group = await Group.findById(req.params.id);
+
+    if (!group) {
+      return res.status(404).json({ message: 'Group not found' });
+    }
+
+    if (group.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Only the group creator can accept join requests' });
+    }
+
+    const { userId } = req.params;
+    const requestExists = group.joinRequests.some((request) => isMatchingRequest(request, userId));
+
+    if (!requestExists) {
+      return res.status(404).json({ message: 'Join request not found' });
+    }
+
+    if (group.members.some((member) => isMatchingMember(member, userId))) {
+      group.joinRequests = group.joinRequests.filter((request) => !isMatchingRequest(request, userId));
+      await group.save();
+      await populateGroup(group);
+      return res.json(group);
+    }
+
+    if (group.members.length >= group.capacity) {
+      return res.status(400).json({ message: 'Group is full' });
+    }
+
+    group.members.push(userId);
+    group.joinRequests = group.joinRequests.filter((request) => !isMatchingRequest(request, userId));
+    await group.save();
+
+    await populateGroup(group);
+
+    res.json(group);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const rejectJoinRequest = async (req, res) => {
+  try {
+    const group = await Group.findById(req.params.id);
+
+    if (!group) {
+      return res.status(404).json({ message: 'Group not found' });
+    }
+
+    if (group.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Only the group creator can reject join requests' });
+    }
+
+    const { userId } = req.params;
+    const originalLength = group.joinRequests.length;
+    group.joinRequests = group.joinRequests.filter((request) => !isMatchingRequest(request, userId));
+
+    if (group.joinRequests.length === originalLength) {
+      return res.status(404).json({ message: 'Join request not found' });
+    }
+
+    await group.save();
+    await populateGroup(group);
 
     res.json(group);
   } catch (error) {
@@ -113,7 +202,7 @@ const leaveGroup = async (req, res) => {
       return res.status(404).json({ message: 'Group not found' });
     }
 
-    if (!group.members.includes(req.user.id)) {
+    if (!group.members.some((member) => isMatchingMember(member, req.user.id))) {
       return res.status(400).json({ message: 'You are not a member of this group' });
     }
 
@@ -124,7 +213,7 @@ const leaveGroup = async (req, res) => {
     group.members = group.members.filter(member => member.toString() !== req.user.id);
     await group.save();
 
-    await group.populate('members', 'username firstName lastName');
+    await populateGroup(group);
 
     res.json(group);
   } catch (error) {
@@ -162,8 +251,7 @@ const updateGroup = async (req, res) => {
     group.capacity = capacity || group.capacity;
 
     await group.save();
-    await group.populate('createdBy', 'username firstName lastName');
-    await group.populate('members', 'username firstName lastName');
+    await populateGroup(group);
 
     res.json(group);
   } catch (error) {
@@ -180,8 +268,8 @@ const deleteGroup = async (req, res) => {
       return res.status(404).json({ message: 'Group not found' });
     }
 
-    if (group.createdBy.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Only group creator can delete the group' });
+    if (group.createdBy.toString() !== req.user.id && !isAdmin(req.user)) {
+      return res.status(403).json({ message: 'Only the group creator or an admin can delete the group' });
     }
 
     group.isActive = false;
@@ -199,6 +287,8 @@ module.exports = {
   getGroups,
   getGroupById,
   joinGroup,
+  acceptJoinRequest,
+  rejectJoinRequest,
   leaveGroup,
   updateGroup,
   deleteGroup

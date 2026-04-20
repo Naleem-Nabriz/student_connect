@@ -28,7 +28,7 @@ export const useApprovedKuppiAds = (params = {}) => {
 
   useEffect(() => {
     fetchAds();
-  }, [params]);
+  }, [fetchAds]);
 
   return {
     ads,
@@ -52,6 +52,13 @@ export const useMyKuppiAds = (userId, params = {}) => {
   });
 
   const fetchAds = useCallback(async (newParams = {}) => {
+    if (!userId) {
+      setAds([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
     console.log('fetchMyKuppiAds called with userId:', userId, 'params:', { ...params, ...newParams });
     setLoading(true);
     setError(null);
@@ -72,6 +79,8 @@ export const useMyKuppiAds = (userId, params = {}) => {
     console.log('useMyKuppiAds useEffect triggered with userId:', userId);
     if (userId) {
       fetchAds();
+    } else {
+      setAds([]);
     }
   }, [userId, fetchAds]);
 
@@ -112,7 +121,7 @@ export const useAllKuppiAds = (params = {}) => {
 
   useEffect(() => {
     fetchAds();
-  }, [params]);
+  }, [fetchAds]);
 
   return {
     ads,

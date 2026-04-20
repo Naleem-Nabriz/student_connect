@@ -69,16 +69,37 @@ export const validateResourceForm = (data) => {
 
   if (!data.type) {
     errors.type = resourceValidationRules.type.required;
-  } else if (data.type === 'link' && !data.linkUrl?.trim()) {
-    errors.linkUrl = resourceValidationRules.linkUrl.required;
-  } else if (data.type === 'link' && data.linkUrl && !/^https?:\/\/.+/.test(data.linkUrl)) {
-    errors.linkUrl = resourceValidationRules.linkUrl.pattern.message;
-  } else if ((data.type === 'file' || data.type === 'document') && !data.fileUrl?.trim()) {
-    errors.fileUrl = resourceValidationRules.fileUrl.required;
-  } else if ((data.type === 'file' || data.type === 'document') && data.fileUrl && !/^https?:\/\/.+/.test(data.fileUrl)) {
-    errors.fileUrl = resourceValidationRules.fileUrl.pattern.message;
+  } else if (data.type === 'link') {
+    // For link type, validate linkUrl
+    if (!data.linkUrl?.trim()) {
+      errors.linkUrl = resourceValidationRules.linkUrl.required;
+    } else if (!/^https?:\/\/.+/.test(data.linkUrl)) {
+      errors.linkUrl = resourceValidationRules.linkUrl.pattern.message;
+    }
+  } else if (data.type === 'file' || data.type === 'document') {
+    // For file/document types, check if file is uploaded (fileUrl will be a File object or string)
+    console.log('Validating file upload:', {
+      fileUrl: data.fileUrl,
+      fileType: typeof data.fileUrl,
+      isFileObject: data.fileUrl instanceof File
+    });
+    
+    if (!data.fileUrl) {
+      errors.fileUrl = 'Please select a file to upload';
+    } else if (!(data.fileUrl instanceof File)) {
+      // If fileUrl is not a File object, it might be a string (edge case)
+      if (typeof data.fileUrl === 'string' && data.fileUrl.trim()) {
+        if (!/^https?:\/\/.+/.test(data.fileUrl)) {
+          errors.fileUrl = resourceValidationRules.fileUrl.pattern.message;
+        }
+      } else {
+        errors.fileUrl = 'Invalid file selected';
+      }
+    }
+    // If fileUrl is a File object, it's valid (no further validation needed)
   }
 
+  console.log('Validation result:', errors);
   return errors;
 };
 

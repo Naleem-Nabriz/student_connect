@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { X, Plus, Trash2, Upload, Link, Clock, MapPin, Users, Award, CheckCircle } from 'lucide-react';
+import { X, Plus, Trash2, Link, Clock, MapPin, Users, Award, CheckCircle } from 'lucide-react';
 import { validateSkillProfile } from '../validation/skillValidation';
 
 const SkillProfileForm = ({ profile, onSubmit, onCancel, loading = false }) => {
@@ -25,7 +25,6 @@ const SkillProfileForm = ({ profile, onSubmit, onCancel, loading = false }) => {
     register,
     handleSubmit,
     formState: { isSubmitting },
-    setValue,
     watch,
   } = useForm({
     defaultValues: profile || {
@@ -146,34 +145,34 @@ const SkillProfileForm = ({ profile, onSubmit, onCancel, loading = false }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#3D3D3D]/45 p-4 backdrop-blur-sm">
+      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[28px] border border-[#eadfce] bg-[#fffaf4] shadow-[0_30px_80px_rgba(61,61,61,0.18)]">
+        <div className="flex items-center justify-between border-b border-[#eadfce] bg-[linear-gradient(135deg,rgba(0,119,182,0.10),rgba(242,201,76,0.14))] p-6">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-[#3D3D3D]">
               {profile ? 'Edit Skill Profile' : 'Create Skill Profile'}
             </h2>
             {/* Profile Completion Score */}
             <div className="mt-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Profile Completion</span>
+                <span className="text-[#6f655c]">Profile Completion</span>
                 <span className={`font-medium ${
-                  profileCompletion >= 80 ? 'text-green-600' :
-                  profileCompletion >= 60 ? 'text-yellow-600' : 'text-red-600'
+                  profileCompletion >= 80 ? 'text-[#0077B6]' :
+                  profileCompletion >= 60 ? 'text-[#8a6a10]' : 'text-[#b85f47]'
                 }`}>
                   {profileCompletion}%
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+              <div className="mt-1 h-2 w-full rounded-full bg-[#efe4d8]">
                 <div
                   className={`h-2 rounded-full transition-all duration-300 ${
-                    profileCompletion >= 80 ? 'bg-green-500' :
-                    profileCompletion >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                    profileCompletion >= 80 ? 'bg-[#0077B6]' :
+                    profileCompletion >= 60 ? 'bg-[#F2C94C]' : 'bg-[#E07A5F]'
                   }`}
                   style={{ width: `${profileCompletion}%` }}
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="mt-1 text-xs text-[#6f655c]">
                 {profileCompletion >= 80 ? 'Excellent! Your profile is highly complete.' :
                  profileCompletion >= 60 ? 'Good progress! Add more details to improve visibility.' :
                  'Get started by adding your skills and preferences.'}
@@ -182,7 +181,7 @@ const SkillProfileForm = ({ profile, onSubmit, onCancel, loading = false }) => {
           </div>
           <button
             onClick={onCancel}
-            className="p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-full transition-colors"
+            className="rounded-full p-2 text-[#85786c] transition-colors hover:bg-white/70 hover:text-[#3D3D3D]"
           >
             <X className="h-5 w-5" />
           </button>
@@ -194,12 +193,12 @@ const SkillProfileForm = ({ profile, onSubmit, onCancel, loading = false }) => {
             <div className="flex items-center justify-between mb-4">
               <label className="block text-sm font-medium text-gray-700">
                 Skills *
-                <span className="text-xs text-gray-500 ml-2">Add at least 2 skills for better matching</span>
+                <span className="ml-2 text-xs text-[#85786c]">Add at least 2 skills for better matching</span>
               </label>
               <button
                 type="button"
                 onClick={addSkill}
-                className="flex items-center px-3 py-1 text-sm bg-primary-100 text-primary-700 rounded-md hover:bg-primary-200 transition-colors"
+                className="flex items-center rounded-full bg-[#d9ecf7] px-4 py-2 text-sm font-medium text-[#0b5f8f] transition-colors hover:bg-[#c9e2f1]"
               >
                 <Plus className="h-4 w-4 mr-1" />
                 Add Skill
@@ -208,7 +207,7 @@ const SkillProfileForm = ({ profile, onSubmit, onCancel, loading = false }) => {
             
             <div className="space-y-3">
               {skills.map((skill, index) => (
-                <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                <div key={index} className="flex items-center space-x-3 rounded-2xl border border-[#f0e1cf] bg-white/80 p-3">
                   <div className="flex-1">
                     <input
                       type="text"
@@ -253,7 +252,7 @@ const SkillProfileForm = ({ profile, onSubmit, onCancel, loading = false }) => {
                     <button
                       type="button"
                       onClick={() => removeSkill(index)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                      className="rounded-full p-2 text-[#b85f47] transition-colors hover:bg-[#f6e3dc]"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -272,12 +271,12 @@ const SkillProfileForm = ({ profile, onSubmit, onCancel, loading = false }) => {
             <div className="flex items-center justify-between mb-4">
               <label className="block text-sm font-medium text-gray-700">
                 Portfolio & Links
-                <span className="text-xs text-gray-500 ml-2">Showcase your work and profiles</span>
+                <span className="ml-2 text-xs text-[#85786c]">Showcase your work and profiles</span>
               </label>
               <button
                 type="button"
                 onClick={addPortfolioLink}
-                className="flex items-center px-3 py-1 text-sm bg-primary-100 text-primary-700 rounded-md hover:bg-primary-200 transition-colors"
+                className="flex items-center rounded-full bg-[#f6e3dc] px-4 py-2 text-sm font-medium text-[#b85f47] transition-colors hover:bg-[#efd3ca]"
               >
                 <Link className="h-4 w-4 mr-1" />
                 Add Link
@@ -286,7 +285,7 @@ const SkillProfileForm = ({ profile, onSubmit, onCancel, loading = false }) => {
             
             <div className="space-y-3">
               {portfolioLinks.map((link, index) => (
-                <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                <div key={index} className="flex items-center space-x-3 rounded-2xl border border-[#f0e1cf] bg-white/80 p-3">
                   <select
                     value={link.type}
                     onChange={(e) => updatePortfolioLink(index, 'type', e.target.value)}
@@ -320,7 +319,7 @@ const SkillProfileForm = ({ profile, onSubmit, onCancel, loading = false }) => {
                     <button
                       type="button"
                       onClick={() => removePortfolioLink(index)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                      className="rounded-full p-2 text-[#b85f47] transition-colors hover:bg-[#f6e3dc]"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -330,7 +329,7 @@ const SkillProfileForm = ({ profile, onSubmit, onCancel, loading = false }) => {
             </div>
             
             {portfolioLinks.length === 0 && (
-              <p className="text-sm text-gray-500 text-center py-4">
+              <p className="py-4 text-center text-sm text-[#85786c]">
                 Add portfolio links to showcase your work and increase profile visibility
               </p>
             )}
@@ -353,7 +352,7 @@ const SkillProfileForm = ({ profile, onSubmit, onCancel, loading = false }) => {
             {errors.bio && (
               <p className="mt-1 text-sm text-red-600">{errors.bio}</p>
             )}
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-[#85786c]">
               {500 - (register('bio').value?.length || 0)} characters remaining
             </p>
           </div>
@@ -362,7 +361,7 @@ const SkillProfileForm = ({ profile, onSubmit, onCancel, loading = false }) => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-4">
               Study Preferences
-              <span className="text-xs text-gray-500 ml-2">Help others find compatible study partners</span>
+              <span className="ml-2 text-xs text-[#85786c]">Help others find compatible study partners</span>
             </label>
             
             <div className="space-y-4">
@@ -480,14 +479,14 @@ const SkillProfileForm = ({ profile, onSubmit, onCancel, loading = false }) => {
               type="button"
               onClick={onCancel}
               disabled={isSubmitting || loading}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-full border border-[#d9cab6] bg-white px-5 py-2.5 text-sm font-medium text-[#5d544d] transition-colors hover:bg-[#fff7ed] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/20 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-full border border-transparent bg-[#0077B6] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#005f92] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/20 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting || loading ? (
                 <div className="flex items-center">

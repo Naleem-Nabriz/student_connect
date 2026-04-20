@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
+import resourceService from '../services/resourceService';
 import { Star, ExternalLink, Download, Edit, Trash2, FileText, Link as LinkIcon, File } from 'lucide-react';
 
-const ResourceCard = ({ resource, onEdit, onDelete, onRate, isOwner = false }) => {
+const ResourceCard = ({ resource, onEdit, onDelete, onRate, isOwner = false, canDelete = false }) => {
   const { user } = useAuth();
-  const [userRating, setUserRating] = useState(0);
+  const currentUserId = user?.id || user?._id || null;
   const [hoveredStar, setHoveredStar] = useState(0);
+  const [downloading, setDownloading] = useState(false);
+
+  const getEntityId = (entity) => {
+    if (!entity) return null;
+    if (typeof entity === 'string') return entity;
+    return entity._id || entity.id || null;
+  };
 
   const getTypeIcon = (type) => {
     switch (type) {
@@ -23,27 +31,51 @@ const ResourceCard = ({ resource, onEdit, onDelete, onRate, isOwner = false }) =
   const getTypeColor = (type) => {
     switch (type) {
       case 'file':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-[#d9ecf7] text-[#0b5f8f]';
       case 'link':
-        return 'bg-green-100 text-green-800';
+        return 'bg-[#d9f1ea] text-[#0c6e59]';
       case 'document':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-[#f6e3dc] text-[#b85f47]';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-[#efe4d8] text-[#62574d]';
     }
   };
 
   const handleRate = (rating) => {
-    if (isOwner) return; // Owner cannot rate their own resource
-    
-    setUserRating(rating);
+    if (isOwner) return;
+
     onRate(resource._id, rating);
   };
 
   const openResource = () => {
-    const url = resource.type === 'link' ? resource.linkUrl : resource.fileUrl;
-    if (url) {
-      window.open(url, '_blank');
+    if (resource.type === 'link') {
+      const url = resource.linkUrl;
+      if (url) {
+        window.open(url, '_blank');
+      }
+      return;
+    }
+
+    handleDownload();
+  };
+
+  const handleDownload = async () => {
+    if (resource.type === 'link') return;
+
+    setDownloading(true);
+    try {
+      const fileUrl = resource.fileUrl;
+      const fileExtension = fileUrl ? fileUrl.split('.').pop() : 'pdf';
+      const filename = `${resource.title}.${fileExtension}`;
+
+      await resourceService.downloadResource(resource._id, filename);
+    } catch (error) {
+      console.error('Download error:', error);
+      if (resource.fileUrl) {
+        window.open(resource.fileUrl, '_blank');
+      }
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -57,11 +89,11 @@ const ResourceCard = ({ resource, onEdit, onDelete, onRate, isOwner = false }) =
     }
   };
 
-  const hasUserRated = resource.ratings?.some(r => r.user._id === user?.id);
-  const userCurrentRating = resource.ratings?.find(r => r.user._id === user?.id)?.rating || 0;
+  const hasUserRated = resource.ratings?.some((rating) => getEntityId(rating.user) === currentUserId);
+  const userCurrentRating = resource.ratings?.find((rating) => getEntityId(rating.user) === currentUserId)?.rating || 0;
 
   return (
-    <div className="card-hover bg-white rounded-lg shadow-md p-6 border border-gray-200">
+    <div className="card-hover rounded-[24px] border border-[#d8e4e6] bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(253,246,236,0.92))] p-6 shadow-[0_18px_45px_rgba(61,61,61,0.08)]">
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-2">
@@ -69,42 +101,46 @@ const ResourceCard = ({ resource, onEdit, onDelete, onRate, isOwner = false }) =
               {getTypeIcon(resource.type)}
               <span className="ml-1 capitalize">{resource.type}</span>
             </span>
-            <span className="text-xs text-gray-500">{resource.subject}</span>
+            <span className="text-xs text-[#85786c]">{resource.subject}</span>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">{resource.title}</h3>
+          <h3 className="mb-2 text-lg font-semibold text-[#3D3D3D]">{resource.title}</h3>
           {resource.description && (
-            <p className="text-sm text-gray-600 line-clamp-3">{resource.description}</p>
+            <p className="line-clamp-3 text-sm text-[#62574d]">{resource.description}</p>
           )}
         </div>
         <div className="flex items-center space-x-2">
-          {isOwner && (
+          {(isOwner || canDelete) && (
             <>
+              {isOwner && (
               <button
                 onClick={handleEdit}
-                className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                className="rounded-full p-2 text-[#0077B6] transition-colors hover:bg-[#d9ecf7]"
                 title="Edit resource"
               >
                 <Edit className="h-4 w-4" />
               </button>
+              )}
               <button
                 onClick={handleDelete}
-                className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                className="rounded-full p-2 text-[#E07A5F] transition-colors hover:bg-[#f6e3dc]"
                 title="Delete resource"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
             </>
           )}
+          {!isOwner && !canDelete && (
+            <span className="text-xs font-medium text-[#b7ab9e]">View only</span>
+          )}
         </div>
       </div>
 
-      {/* Tags */}
       {resource.tags && resource.tags.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-4">
           {resource.tags.map((tag, index) => (
             <span
               key={index}
-              className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800"
+              className="inline-flex items-center rounded-full bg-[#efe4d8] px-2 py-1 text-xs font-medium text-[#62574d]"
             >
               {tag}
             </span>
@@ -112,23 +148,22 @@ const ResourceCard = ({ resource, onEdit, onDelete, onRate, isOwner = false }) =
         </div>
       )}
 
-      {/* Rating Section */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <div className="flex items-center">
-            <Star className="h-4 w-4 text-yellow-400 fill-current" />
-            <span className="ml-1 text-sm font-medium text-gray-900">
+            <Star className="h-4 w-4 fill-current text-[#F2C94C]" />
+            <span className="ml-1 text-sm font-medium text-[#3D3D3D]">
               {resource.averageRating.toFixed(1)}
             </span>
-            <span className="ml-1 text-xs text-gray-500">
+            <span className="ml-1 text-xs text-[#85786c]">
               ({resource.ratings?.length || 0} reviews)
             </span>
           </div>
         </div>
-        
+
         {!isOwner && (
           <div className="flex items-center space-x-1">
-            <span className="text-xs text-gray-500">Rate:</span>
+            <span className="text-xs text-[#85786c]">Rate:</span>
             {[1, 2, 3, 4, 5].map((star) => (
               <button
                 key={star}
@@ -142,8 +177,8 @@ const ResourceCard = ({ resource, onEdit, onDelete, onRate, isOwner = false }) =
                   className={`h-4 w-4 ${
                     star <= (hoveredStar || userCurrentRating)
                       ? 'text-yellow-400 fill-current'
-                      : 'text-gray-300'
-                  } ${hasUserRated ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:text-yellow-400'}`}
+                      : 'text-[#d7c8b7]'
+                  } ${hasUserRated ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:text-[#F2C94C]'}`}
                 />
               </button>
             ))}
@@ -151,14 +186,25 @@ const ResourceCard = ({ resource, onEdit, onDelete, onRate, isOwner = false }) =
         )}
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+      <div className="flex items-center justify-between border-t border-[#eadfce] pt-4">
         <div className="flex items-center space-x-2">
           <button
             onClick={openResource}
-            className="flex items-center px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+            disabled={downloading}
+            className={`flex items-center px-3 py-1 text-sm rounded-md transition-colors ${
+              downloading
+                ? 'cursor-not-allowed text-[#b7ab9e]'
+                : resource.type === 'link'
+                  ? 'text-[#0077B6] hover:bg-[#d9ecf7]'
+                  : 'text-[#0c6e59] hover:bg-[#d9f1ea]'
+            }`}
           >
-            {resource.type === 'link' ? (
+            {downloading ? (
+              <>
+                <div className="loading-spinner w-4 h-4 mr-1"></div>
+                Downloading...
+              </>
+            ) : resource.type === 'link' ? (
               <>
                 <ExternalLink className="h-4 w-4 mr-1" />
                 Open Link
@@ -166,24 +212,26 @@ const ResourceCard = ({ resource, onEdit, onDelete, onRate, isOwner = false }) =
             ) : (
               <>
                 <Download className="h-4 w-4 mr-1" />
-                View Resource
+                Download File
               </>
             )}
           </button>
         </div>
-        
-        <div className="text-xs text-gray-400">
+
+        <div className="text-xs text-[#85786c]">
           Uploaded {new Date(resource.createdAt).toLocaleDateString()}
+          {resource.downloads && (
+            <span className="ml-2">&bull; {resource.downloads} downloads</span>
+          )}
         </div>
       </div>
 
-      {/* Uploaded by info */}
-      <div className="mt-4 pt-4 border-t border-gray-100">
+      <div className="mt-4 border-t border-[#eadfce] pt-4">
         <div className="flex items-center">
-          <div className="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center text-white text-xs font-medium mr-2">
+          <div className="mr-2 flex h-6 w-6 items-center justify-center rounded-full bg-[linear-gradient(135deg,#0077B6,#4f9fc6)] text-xs font-medium text-white">
             {resource.uploadedBy?.firstName?.[0] || resource.uploadedBy?.username?.[0]?.toUpperCase()}
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-[#85786c]">
             by {resource.uploadedBy?.firstName} {resource.uploadedBy?.lastName}
           </p>
         </div>

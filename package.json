@@ -9,10 +9,19 @@
     "client": "cd client && npm start",
     "install-all": "npm install && cd server && npm install && cd ../client && npm install"
   },
-  "keywords": ["mern", "education", "collaboration", "students"],
+  "keywords": [
+    "mern",
+    "education",
+    "collaboration",
+    "students"
+  ],
   "author": "Uni-Connect Team",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "@huggingface/inference": "^4.13.15",
+    "groq-sdk": "^1.1.2"
   }
 }

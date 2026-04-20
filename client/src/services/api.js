@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base API configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5012/api';
 
 // Create axios instance for auth routes
 export const authAPI = axios.create({
@@ -62,7 +62,9 @@ export const assistantAPI = axios.create({
 });
 
 // Request interceptor to add auth token
-const setupInterceptors = (apiInstance) => {
+const setupInterceptors = (apiInstance, options = {}) => {
+  const { redirectOnUnauthorized = true } = options;
+
   apiInstance.interceptors.request.use(
     (config) => {
       const token = localStorage.getItem('token');
@@ -80,7 +82,7 @@ const setupInterceptors = (apiInstance) => {
   apiInstance.interceptors.response.use(
     (response) => response,
     (error) => {
-      if (error.response?.status === 401) {
+      if (redirectOnUnauthorized && error.response?.status === 401) {
         // Token expired or invalid
         localStorage.removeItem('token');
         window.location.href = '/login';
@@ -98,7 +100,7 @@ setupInterceptors(skillsAPI);
 setupInterceptors(collaborationsAPI);
 setupInterceptors(academicAPI);
 setupInterceptors(kuppiAPI);
-setupInterceptors(assistantAPI);
+setupInterceptors(assistantAPI, { redirectOnUnauthorized: false });
 
 // Utility functions
 export const setAuthToken = (token) => {
@@ -150,7 +152,7 @@ export const create = (config) => {
   return instance;
 };
 
-export default {
+const apiServices = {
   authAPI,
   groupsAPI,
   resourcesAPI,
@@ -164,3 +166,5 @@ export default {
   removeAuthToken,
   handleAPIError,
 };
+
+export default apiServices;

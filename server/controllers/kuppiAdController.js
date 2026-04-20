@@ -1,5 +1,6 @@
 const { validationResult } = require('express-validator');
 const KuppiAd = require('../models/KuppiAd');
+const Notification = require('../models/Notification');
 
 // @desc    Create new kuppi ad
 // @route   POST /api/kuppi/create
@@ -404,7 +405,7 @@ const enrollStudent = async (req, res) => {
     console.log('Enrolling student in class:', req.params.classId);
     
     const classId = req.params.classId;
-    const studentId = req.user._id;
+    const studentId = req.user._id.toString();
 
     // Find the kuppi class
     const kuppiClass = await KuppiAd.findById(classId);
@@ -427,30 +428,58 @@ const enrollStudent = async (req, res) => {
       return res.status(400).json({ message: 'Class is at maximum capacity' });
     }
 
-    // Add student to enrolled students
-    kuppiClass.enrolledStudents.push({
-      student: studentId,
-      enrolledAt: new Date()
-    });
+    // Check if class is free (price = 0)
+    if (kuppiClass.price === 0) {
+      // FREE CLASS - Direct enrollment
+      kuppiClass.enrolledStudents.push({
+        student: req.user._id,
+        enrolledAt: new Date()
+      });
 
-    // Update current enrollment count
-    kuppiClass.currentEnrollments = kuppiClass.enrolledStudents.length;
+      // Update current enrollment count
+      kuppiClass.currentEnrollments = kuppiClass.enrolledStudents.length;
 
-    // Save to database
-    await kuppiClass.save();
-    await kuppiClass.populate('createdBy', 'firstName lastName email');
-    await kuppiClass.populate('enrolledStudents.student', 'firstName lastName email');
+      // Save to database
+      await kuppiClass.save();
+      await kuppiClass.populate('createdBy', 'firstName lastName email');
+      await kuppiClass.populate('enrolledStudents.student', 'firstName lastName email');
 
-    console.log('Student enrolled successfully:', {
-      classId: classId,
-      studentId: studentId,
-      totalEnrolled: kuppiClass.currentEnrollments
-    });
+      // Create notification for class creator
+      try {
+        await Notification.createKuppiEnrollmentNotification(
+          kuppiClass.createdBy._id, // Class creator ID
+          req.user._id, // Student ID
+          kuppiClass._id, // Class ID
+          `${req.user.firstName || 'Student'} ${req.user.lastName || ''}`, // Student name
+          kuppiClass.title, // Class name
+          kuppiClass.subject // Class subject
+        );
+        console.log('Notification created for class creator:', kuppiClass.createdBy._id);
+      } catch (notificationError) {
+        console.error('Error creating notification:', notificationError);
+        // Don't fail the enrollment if notification fails
+      }
 
-    res.status(200).json({
-      message: 'Enrolled successfully',
-      kuppiClass: kuppiClass
-    });
+      console.log('Student enrolled successfully in FREE class:', {
+        classId: classId,
+        studentId: studentId,
+        totalEnrolled: kuppiClass.currentEnrollments,
+        price: kuppiClass.price
+      });
+
+      return res.status(200).json({
+        message: 'Enrolled successfully (Free Class)',
+        kuppiClass: kuppiClass
+      });
+    } else {
+      // PAID CLASS - Payment required
+      return res.status(402).json({
+        message: 'Payment Required',
+        paymentNeeded: true,
+        price: kuppiClass.price,
+        classId: classId
+      });
+    }
   } catch (error) {
     console.error('Error enrolling student:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -499,7 +528,7 @@ const unenrollStudent = async (req, res) => {
     console.log('Unenrolling student from class:', req.params.classId);
     
     const classId = req.params.classId;
-    const studentId = req.user._id;
+    const studentId = req.user._id.toString();
 
     // Find the kuppi class
     const kuppiClass = await KuppiAd.findById(classId);
@@ -528,19 +557,123 @@ const unenrollStudent = async (req, res) => {
     await kuppiClass.populate('createdBy', 'firstName lastName email');
     await kuppiClass.populate('enrolledStudents.student', 'firstName lastName email');
 
+    // Create notification for class creator
+    try {
+      await Notification.createKuppiUnenrollmentNotification(
+        kuppiClass.createdBy._id, // Class creator ID
+        req.user._id, // Student ID
+        kuppiClass._id, // Class ID
+        `${req.user.firstName || 'Student'} ${req.user.lastName || ''}`, // Student name
+        kuppiClass.title, // Class name
+        kuppiClass.subject // Class subject
+      );
+      console.log('Unenrollment notification created for class creator:', kuppiClass.createdBy._id);
+    } catch (notificationError) {
+      console.error('Error creating unenrollment notification:', notificationError);
+      // Don't fail the unenrollment if notification fails
+    }
+
     console.log('Student unenrolled successfully:', {
       classId: classId,
       studentId: studentId,
       totalEnrolled: kuppiClass.currentEnrollments
     });
 
-    res.status(200).json({
+res.status(200).json({
       message: 'Unenrolled successfully',
       kuppiClass: kuppiClass
     });
   } catch (error) {
     console.error('Error unenrolling student:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// @desc    Process payment and enroll student in kuppi class
+// @route   POST /api/kuppi/payment/:classId
+// @access   Private
+const processPaymentAndEnroll = async (req, res) => {
+  try {
+    console.log('Processing payment for class:', req.params.classId);
+    
+    const classId = req.params.classId;
+    const studentId = req.user._id.toString();
+    const { paymentDetails } = req.body; // In real app, this would contain payment info
+
+    // Find the kuppi class
+    const kuppiClass = await KuppiAd.findById(classId);
+
+    if (!kuppiClass) {
+      return res.status(404).json({ message: 'Kuppi class not found' });
+    }
+
+    // Check if class is free
+    if (kuppiClass.price === 0) {
+      return res.status(400).json({ message: 'This is a free class. Use the enroll endpoint instead.' });
+    }
+
+    // Check if student is already enrolled
+    const alreadyEnrolled = kuppiClass.enrolledStudents.some(
+      enrollment => enrollment.student.toString() === studentId
+    );
+
+    if (alreadyEnrolled) {
+      return res.status(400).json({ message: 'Already Enrolled' });
+    }
+
+    // Check if class is at max capacity
+    if (kuppiClass.currentEnrollments >= kuppiClass.maxStudents) {
+      return res.status(400).json({ message: 'Class is at maximum capacity' });
+    }
+
+    // Process payment (in real app, you would integrate with payment gateway here)
+    // For now, we'll simulate successful payment
+    console.log('Payment processed successfully for class:', classId, 'student:', studentId);
+
+    // Add student to enrolled students
+    kuppiClass.enrolledStudents.push({
+      student: req.user._id,
+      enrolledAt: new Date()
+    });
+
+    // Update current enrollment count
+    kuppiClass.currentEnrollments = kuppiClass.enrolledStudents.length;
+
+    // Save to database
+    await kuppiClass.save();
+    await kuppiClass.populate('createdBy', 'firstName lastName email');
+    await kuppiClass.populate('enrolledStudents.student', 'firstName lastName email');
+
+    // Create notification for class creator
+    try {
+      await Notification.createKuppiEnrollmentNotification(
+        kuppiClass.createdBy._id, // Class creator ID
+        req.user._id, // Student ID
+        kuppiClass._id, // Class ID
+        `${req.user.firstName || 'Student'} ${req.user.lastName || ''}`, // Student name
+        kuppiClass.title, // Class name
+        kuppiClass.subject // Class subject
+      );
+      console.log('Notification created for class creator:', kuppiClass.createdBy._id);
+    } catch (notificationError) {
+      console.error('Error creating notification:', notificationError);
+      // Don't fail the enrollment if notification fails
+    }
+
+    console.log('Student enrolled successfully after payment:', {
+      classId: classId,
+      studentId: studentId,
+      totalEnrolled: kuppiClass.currentEnrollments,
+      price: kuppiClass.price
+    });
+
+    res.status(200).json({
+      message: 'Payment processed and enrollment completed successfully',
+      kuppiClass: kuppiClass
+    });
+  } catch (error) {
+    console.error('Error processing payment and enrollment:', error);
+    res.status(500).json({ message: 'Server error processing payment and enrollment', error: error.message });
   }
 };
 
@@ -555,5 +688,6 @@ module.exports = {
   deleteKuppiAd,
   enrollStudent,
   getMyEnrollments,
-  unenrollStudent
+  unenrollStudent,
+  processPaymentAndEnroll
 };

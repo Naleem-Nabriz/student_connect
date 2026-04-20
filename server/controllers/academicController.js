@@ -4,15 +4,42 @@ const Record = require('../models/Record');
 
 const roundToTwo = (value) => Number((value || 0).toFixed(2));
 
-const buildSubjectInsight = (subject, subjectRecords) => {
-  const totalMarks = subjectRecords.reduce((sum, r) => sum + (r.marks || 0), 0);
-  const totalAttendance = subjectRecords.reduce((sum, r) => sum + (r.attendance || 0), 0);
-  const totalAssignments = subjectRecords.reduce((sum, r) => sum + (r.assignmentScore || 0), 0);
-  const count = subjectRecords.length;
+const getRecordAssessmentValues = (record) => {
+  const values = [
+    record.quizMarks,
+    record.midtermMarks,
+    record.assignmentMarks,
+    record.finalMarks,
+  ].filter((value) => value !== undefined && value !== null);
 
-  const averageMarks = count > 0 ? roundToTwo(totalMarks / count) : 0;
-  const averageAttendance = count > 0 ? roundToTwo(totalAttendance / count) : 0;
-  const averageAssignmentScore = count > 0 ? roundToTwo(totalAssignments / count) : 0;
+  if (values.length > 0) {
+    return values;
+  }
+
+  if (record.marks !== undefined && record.marks !== null) {
+    return [record.marks];
+  }
+
+  return [];
+};
+
+const buildSubjectInsight = (subject, subjectRecords) => {
+  const allAssessmentValues = subjectRecords.flatMap(getRecordAssessmentValues);
+  const totalMarks = allAssessmentValues.reduce((sum, value) => sum + value, 0);
+  const attendanceRecords = subjectRecords.filter((record) => record.attendance !== undefined && record.attendance !== null);
+  const totalAttendance = attendanceRecords.reduce((sum, r) => sum + (r.attendance || 0), 0);
+  const assignmentValues = subjectRecords
+    .map((record) => record.assignmentMarks ?? record.assignmentScore)
+    .filter((value) => value !== undefined && value !== null);
+  const totalAssignments = assignmentValues.reduce((sum, value) => sum + value, 0);
+  const count = subjectRecords.length;
+  const attendanceCount = attendanceRecords.length;
+  const marksCount = allAssessmentValues.length;
+  const assignmentCount = assignmentValues.length;
+
+  const averageMarks = marksCount > 0 ? roundToTwo(totalMarks / marksCount) : 0;
+  const averageAttendance = attendanceCount > 0 ? roundToTwo(totalAttendance / attendanceCount) : 0;
+  const averageAssignmentScore = assignmentCount > 0 ? roundToTwo(totalAssignments / assignmentCount) : 0;
 
   const goals = {
     targetMarks: subject.targetMarks ?? null,
@@ -220,7 +247,16 @@ const createRecord = async (req, res) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { subjectId, marks, attendance, assignmentScore, testType, notes } = req.body;
+    const {
+      subjectId,
+      quizMarks,
+      midtermMarks,
+      assignmentMarks,
+      finalMarks,
+      attendance,
+      notes,
+      date,
+    } = req.body;
 
     // Verify subject belongs to user
     const subject = await Subject.findOne({ _id: subjectId, userId: req.user.id });
@@ -231,11 +267,13 @@ const createRecord = async (req, res) => {
     const record = new Record({
       subjectId,
       userId: req.user.id,
-      marks,
+      quizMarks,
+      midtermMarks,
+      assignmentMarks,
+      finalMarks,
       attendance,
-      assignmentScore,
-      testType,
-      notes
+      notes,
+      date
     });
 
     await record.save();
@@ -280,18 +318,28 @@ const updateRecord = async (req, res) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { marks, attendance, assignmentScore, testType, notes } = req.body;
+    const {
+      quizMarks,
+      midtermMarks,
+      assignmentMarks,
+      finalMarks,
+      attendance,
+      notes,
+      date,
+    } = req.body;
     const record = await Record.findOne({ _id: req.params.id, userId: req.user.id });
 
     if (!record) {
       return res.status(404).json({ message: 'Record not found' });
     }
 
-    record.marks = marks !== undefined ? marks : record.marks;
+    record.quizMarks = quizMarks !== undefined ? quizMarks : record.quizMarks;
+    record.midtermMarks = midtermMarks !== undefined ? midtermMarks : record.midtermMarks;
+    record.assignmentMarks = assignmentMarks !== undefined ? assignmentMarks : record.assignmentMarks;
+    record.finalMarks = finalMarks !== undefined ? finalMarks : record.finalMarks;
     record.attendance = attendance !== undefined ? attendance : record.attendance;
-    record.assignmentScore = assignmentScore !== undefined ? assignmentScore : record.assignmentScore;
-    record.testType = testType || record.testType;
-    record.notes = notes || record.notes;
+    record.notes = notes !== undefined ? notes : record.notes;
+    record.date = date || record.date;
 
     await record.save();
     await record.populate('subjectId', 'name code credits');

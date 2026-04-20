@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { skillService } from '../services/skillService';
 
 export const useSkillProfile = () => {
@@ -6,7 +6,7 @@ export const useSkillProfile = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchMyProfile = async () => {
+  const fetchMyProfile = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -17,7 +17,7 @@ export const useSkillProfile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const updateProfile = async (profileData) => {
     setLoading(true);
@@ -36,7 +36,7 @@ export const useSkillProfile = () => {
 
   useEffect(() => {
     fetchMyProfile();
-  }, []);
+  }, [fetchMyProfile]);
 
   return {
     profile,
@@ -58,23 +58,23 @@ export const useSkillProfiles = (params = {}) => {
     pages: 0,
   });
 
-  const fetchProfiles = async (newParams = {}) => {
+  const fetchProfiles = useCallback(async (newParams = {}) => {
     setLoading(true);
     setError(null);
     try {
       const response = await skillService.getSkillProfiles({ ...params, ...newParams });
       setProfiles(response.skillProfiles || []);
-      setPagination(response.pagination || pagination);
+      setPagination(prev => response.pagination || prev);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [params]);
 
   useEffect(() => {
     fetchProfiles();
-  }, []);
+  }, [fetchProfiles]);
 
   return {
     profiles,
@@ -88,6 +88,9 @@ export const useSkillProfiles = (params = {}) => {
 export const useCollaborations = (params = {}) => {
   const [collaborations, setCollaborations] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [responding, setResponding] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -96,22 +99,22 @@ export const useCollaborations = (params = {}) => {
     pages: 0,
   });
 
-  const fetchCollaborations = async (newParams = {}) => {
+  const fetchCollaborations = useCallback(async (newParams = {}) => {
     setLoading(true);
     setError(null);
     try {
       const response = await skillService.getCollaborationRequests({ ...params, ...newParams });
       setCollaborations(response.collaborations || []);
-      setPagination(response.pagination || pagination);
+      setPagination(prev => response.pagination || prev);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [params]);
 
   const createCollaboration = async (collaborationData) => {
-    setLoading(true);
+    setCreating(true);
     setError(null);
     try {
       const newCollaboration = await skillService.createCollaborationRequest(collaborationData);
@@ -121,12 +124,12 @@ export const useCollaborations = (params = {}) => {
       setError(err.message);
       throw err;
     } finally {
-      setLoading(false);
+      setCreating(false);
     }
   };
 
   const updateCollaborationStatus = async (id, status) => {
-    setLoading(true);
+    setUpdatingStatus(true);
     setError(null);
     try {
       const updatedCollaboration = await skillService.updateCollaborationStatus(id, status);
@@ -138,12 +141,12 @@ export const useCollaborations = (params = {}) => {
       setError(err.message);
       throw err;
     } finally {
-      setLoading(false);
+      setUpdatingStatus(false);
     }
   };
 
   const respondToCollaboration = async (id, responseData) => {
-    setLoading(true);
+    setResponding(true);
     setError(null);
     try {
       const updatedCollaboration = await skillService.respondToCollaboration(id, responseData);
@@ -155,17 +158,20 @@ export const useCollaborations = (params = {}) => {
       setError(err.message);
       throw err;
     } finally {
-      setLoading(false);
+      setResponding(false);
     }
   };
 
   useEffect(() => {
     fetchCollaborations();
-  }, []);
+  }, [fetchCollaborations]);
 
   return {
     collaborations,
     loading,
+    creating,
+    responding,
+    updatingStatus,
     error,
     pagination,
     fetchCollaborations,
@@ -180,7 +186,7 @@ export const useMyCollaborations = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchMyCollaborations = async () => {
+  const fetchMyCollaborations = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -191,11 +197,11 @@ export const useMyCollaborations = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchMyCollaborations();
-  }, []);
+  }, [fetchMyCollaborations]);
 
   return {
     collaborations,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { resourceService } from '../services/resourceService';
 
 export const useResources = (params = {}) => {
@@ -12,29 +12,32 @@ export const useResources = (params = {}) => {
     pages: 0,
   });
 
-  const fetchResources = async (newParams = {}) => {
+  // Memoize params to prevent unnecessary re-renders
+  const memoizedParams = useMemo(() => params, [JSON.stringify(params)]);
+
+  const fetchResources = useCallback(async (newParams = {}) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await resourceService.getResources({ ...params, ...newParams });
+      const response = await resourceService.getResources({ ...memoizedParams, ...newParams });
       setResources(response.resources || []);
-      setPagination(response.pagination || pagination);
+      setPagination(prev => response.pagination || prev);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [memoizedParams]);
 
   useEffect(() => {
     fetchResources();
-  }, []);
+  }, [fetchResources]);
 
-  const createResource = async (resourceData) => {
+  const createResource = async (resourceData, isFileUpload = false) => {
     setLoading(true);
     setError(null);
     try {
-      const newResource = await resourceService.createResource(resourceData);
+      const newResource = await resourceService.createResource(resourceData, isFileUpload);
       setResources(prev => [newResource, ...prev]);
       return newResource;
     } catch (err) {
@@ -111,24 +114,27 @@ export const useResource = (id) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchResource = async () => {
-    if (!id) return;
+  // Memoize id to prevent unnecessary re-renders
+  const memoizedId = useMemo(() => id, [id]);
+
+  const fetchResource = useCallback(async () => {
+    if (!memoizedId) return;
     
     setLoading(true);
     setError(null);
     try {
-      const resourceData = await resourceService.getResourceById(id);
+      const resourceData = await resourceService.getResourceById(memoizedId);
       setResource(resourceData);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [memoizedId]);
 
   useEffect(() => {
     fetchResource();
-  }, [id]);
+  }, [fetchResource]);
 
   return {
     resource,

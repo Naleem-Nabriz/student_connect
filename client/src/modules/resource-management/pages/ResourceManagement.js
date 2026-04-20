@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { Plus, Search, Filter, Star } from 'lucide-react';
+import { Plus, Search, Filter } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useResources } from '../hooks/useResources';
 import { useAuth } from '../../../context/AuthContext';
@@ -10,6 +10,8 @@ import LoadingSpinner from '../../../components/LoadingSpinner';
 
 const ResourceList = () => {
   const { user } = useAuth();
+  const currentUserId = user?.id || user?._id || null;
+  const isAdmin = user?.role === 'admin';
   const [showForm, setShowForm] = useState(false);
   const [editingResource, setEditingResource] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -25,12 +27,11 @@ const ResourceList = () => {
     updateResource,
     deleteResource,
     rateResource,
-    fetchResources,
   } = useResources();
 
-  const handleCreateResource = async (resourceData) => {
+  const handleCreateResource = async (resourceData, isFileUpload = false) => {
     try {
-      await createResource(resourceData);
+      await createResource(resourceData, isFileUpload);
       setShowForm(false);
       toast.success('Resource shared successfully!');
     } catch (error) {
@@ -185,7 +186,8 @@ const ResourceList = () => {
               onEdit={setEditingResource}
               onDelete={handleDeleteResource}
               onRate={handleRateResource}
-              isOwner={resource.uploadedBy?._id === user?.id}
+              isOwner={getEntityId(resource.uploadedBy) === currentUserId}
+              canDelete={getEntityId(resource.uploadedBy) === currentUserId || isAdmin}
             />
           ))}
         </div>
@@ -239,3 +241,8 @@ const ResourceManagement = () => {
 };
 
 export default ResourceManagement;
+  const getEntityId = (entity) => {
+    if (!entity) return null;
+    if (typeof entity === 'string') return entity;
+    return entity._id || entity.id || null;
+  };

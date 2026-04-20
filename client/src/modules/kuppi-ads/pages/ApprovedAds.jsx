@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { useApprovedKuppiAds } from '../hooks/useKuppiAds';
 import KuppiAdCard from '../components/KuppiAdCard';
-import LoadingSpinner from '../../../components/LoadingSpinner';
 import CreateAd from '../components/CreateAd';
 
 const ApprovedAds = () => {
@@ -37,38 +37,36 @@ const ApprovedAds = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 rounded-[28px] border border-[#d8e4e6] bg-[#fffaf2] p-5 shadow-[0_18px_45px_rgba(61,61,61,0.06)] md:p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Kuppi Advertisements</h1>
-          <p className="text-[#A0A3BD] mt-1">Find and enroll in tuition classes</p>
+          <h1 className="text-3xl font-bold tracking-tight text-[#3D3D3D]">Kuppi Advertisements</h1>
+          <p className="mt-2 text-sm text-[#62574d]">Find and enroll in tuition classes with a calmer, clearer browsing flow.</p>
         </div>
         {user && (
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center px-4 py-2 bg-gradient-to-r from-[#FF7A00] to-[#FFB800] text-white rounded-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+            className="flex items-center rounded-full bg-[linear-gradient(135deg,#0077B6,#E07A5F)] px-5 py-2.5 text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
           >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8 8H8a2 2 0 008-2v2a2 2 0 00-2 2v6a2 2 0 002-2l-3 3a2 2 0 004-2l-3-3a2 2 0 002-2z" />
-            </svg>
+            <Plus className="w-4 h-4 mr-2" />
             Create Advertisement
           </button>
         )}
       </div>
 
       {/* Navigation */}
-      <div className="flex flex-wrap gap-4 p-4 bg-[#111217] rounded-lg border border-[#2A2D36]">
+      <div className="flex flex-wrap gap-4 rounded-[24px] border border-[#eadfce] bg-white/80 p-4">
         <Link
           to="/kuppi"
-          className="px-4 py-2 bg-[#FF7A00] text-white rounded-md hover:bg-[#FF8800] transition-colors"
+          className="rounded-full bg-[#0077B6] px-4 py-2 text-white transition-colors hover:bg-[#005f92]"
         >
           Browse Ads
         </Link>
         {user && (
           <Link
             to="/kuppi/my"
-            className="px-4 py-2 bg-[#2A2D36] text-white rounded-md hover:bg-[#3A3D46] transition-colors"
+            className="rounded-full bg-[#efe4d8] px-4 py-2 text-[#5d544d] transition-colors hover:bg-[#e4d6c6]"
           >
             My Ads
           </Link>
@@ -76,7 +74,7 @@ const ApprovedAds = () => {
         {user?.role === 'admin' && (
           <Link
             to="/kuppi/admin"
-            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+            className="rounded-full bg-[#E07A5F] px-4 py-2 text-white transition-colors hover:bg-[#c96a52]"
           >
             Admin Dashboard
           </Link>
@@ -91,14 +89,14 @@ const ApprovedAds = () => {
             placeholder="Search ads..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-3 py-2 bg-[#111217] border border-[#2A2D36] rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF7A00] text-white placeholder-[#A0A3BD]"
+            className="w-full rounded-full border border-[#eadfce] bg-white px-4 py-3 text-[#3D3D3D] placeholder-[#85786c] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/20"
           />
         </div>
         <div className="min-w-[150px]">
           <select
             value={filterSubject}
             onChange={(e) => setFilterSubject(e.target.value)}
-            className="w-full px-3 py-2 bg-[#111217] border border-[#2A2D36] rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF7A00] text-white"
+            className="w-full rounded-full border border-[#eadfce] bg-white px-4 py-3 text-[#3D3D3D] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/20"
           >
             <option value="">All Subjects</option>
             <option value="Mathematics">Mathematics</option>
@@ -115,14 +113,14 @@ const ApprovedAds = () => {
             placeholder="Filter by location"
             value={filterLocation}
             onChange={(e) => setFilterLocation(e.target.value)}
-            className="w-full px-3 py-2 bg-[#111217] border border-[#2A2D36] rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF7A00] text-white placeholder-[#A0A3BD]"
+            className="w-full rounded-full border border-[#eadfce] bg-white px-4 py-3 text-[#3D3D3D] placeholder-[#85786c] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/20"
           />
         </div>
         <div className="min-w-[150px]">
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="w-full px-3 py-2 bg-[#111217] border border-[#2A2D36] rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF7A00] text-white"
+            className="w-full rounded-full border border-[#eadfce] bg-white px-4 py-3 text-[#3D3D3D] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/20"
           >
             <option value="createdAt">Latest First</option>
             <option value="price">Price: Low to High</option>
@@ -137,11 +135,11 @@ const ApprovedAds = () => {
           <div className="loading-spinner w-8 h-8"></div>
         </div>
       ) : error ? (
-        <div className="text-center py-8 text-[#EF4444] bg-[#1A1C22] border border-[#2A2D36] rounded-lg">
+        <div className="rounded-[24px] border border-[#f6e3dc] bg-[#fff1ed] py-8 text-center text-[#b85f47]">
           Error: {error}
         </div>
       ) : filteredAds.length === 0 ? (
-        <div className="text-center py-8 text-[#A0A3BD] bg-[#1A1C22] border border-[#2A2D36] rounded-lg">
+        <div className="rounded-[24px] border border-[#eadfce] bg-white/70 py-8 text-center text-[#85786c]">
           No advertisements found matching your criteria.
         </div>
       ) : (

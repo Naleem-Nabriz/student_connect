@@ -1,4 +1,5 @@
 const express = require('express');
+const multer = require('multer');
 const { body } = require('express-validator');
 const { auth } = require('../middleware/auth');
 const {
@@ -7,7 +8,9 @@ const {
   getResourceById,
   updateResource,
   deleteResource,
-  rateResource
+  rateResource,
+  downloadResource,
+  upload
 } = require('../controllers/resourceController');
 
 const router = express.Router();
@@ -30,11 +33,40 @@ const rateResourceValidation = [
 ];
 
 // Routes
-router.post('/', auth, createResourceValidation, createResource);
-router.get('/', auth, getResources);
-router.get('/:id', auth, getResourceById);
+router.post('/', auth, (req, res, next) => {
+  console.log('=== BEFORE MULTER ===');
+  console.log('Request headers:', req.headers);
+  console.log('Content-Type:', req.headers['content-type']);
+  next();
+}, upload.single('file'), (req, res, next) => {
+  console.log('=== MULTER MIDDLEWARE DEBUG ===');
+  console.log('Request headers:', req.headers);
+  console.log('Request file after multer:', req.file);
+  console.log('Request body after multer:', req.body);
+  console.log('Content-Type:', req.headers['content-type']);
+  next();
+}, createResourceValidation, createResource);
+
+// Multer error handler
+router.use((err, req, res, next) => {
+  console.log('=== MULTER ERROR ===');
+  console.log('Multer error:', err);
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ message: 'File too large. Maximum size is 10MB' });
+    } else if (err.code === 'LIMIT_FILE_COUNT') {
+      return res.status(400).json({ message: 'Too many files uploaded' });
+    } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+      return res.status(400).json({ message: 'Unexpected file field' });
+    }
+  }
+  return res.status(400).json({ message: 'File upload error: ' + err.message });
+});
+router.get('/', getResources);
+router.get('/:id', getResourceById);
 router.put('/:id', auth, updateResourceValidation, updateResource);
 router.delete('/:id', auth, deleteResource);
 router.post('/:id/rate', auth, rateResourceValidation, rateResource);
+router.get('/:id/download', downloadResource); // Download endpoint
 
 module.exports = router;

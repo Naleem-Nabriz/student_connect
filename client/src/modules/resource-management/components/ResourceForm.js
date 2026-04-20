@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { X, Link as LinkIcon, FileText, File } from 'lucide-react';
+import { X, Link as LinkIcon, FileText, File, Upload } from 'lucide-react';
 import { validateResourceForm } from '../validation/resourceValidation';
 
 const ResourceForm = ({ resource, onSubmit, onCancel, loading = false }) => {
   const [errors, setErrors] = useState({});
   const [resourceType, setResourceType] = useState(resource?.type || 'link');
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploading, setUploading] = useState(false);
   
   const {
     register,
@@ -26,30 +29,152 @@ const ResourceForm = ({ resource, onSubmit, onCancel, loading = false }) => {
   });
 
   const watchedType = watch('type');
+  const hasExistingFile = Boolean(resource?.fileUrl);
   
   React.useEffect(() => {
     if (watchedType !== resourceType) {
       setResourceType(watchedType);
-      // Clear URLs when type changes
+      // Clear URLs and file when type changes
       setValue('fileUrl', '');
       setValue('linkUrl', '');
+      setUploadedFile(null);
     }
   }, [watchedType, resourceType, setValue]);
 
-  const onFormSubmit = (data) => {
+  const onFormSubmit = async (data) => {
+    console.log('=== FORM SUBMISSION START ===');
+    console.log('Form submission data:', data);
+    console.log('Resource type state:', resourceType);
+    console.log('Uploaded file state:', uploadedFile);
+    console.log('=== FORM SUBMISSION END ===');
+    
+    // Set fileUrl for validation if we have an uploaded file
+    if ((resourceType === 'file' || resourceType === 'document') && uploadedFile) {
+      data.fileUrl = uploadedFile;
+      console.log('Set fileUrl to uploadedFile:', uploadedFile);
+    }
+    
     const validationErrors = validateResourceForm(data);
     if (Object.keys(validationErrors).length > 0) {
+      console.log('Validation errors:', validationErrors);
       setErrors(validationErrors);
       return;
     }
     
-    // Process tags
-    if (data.tags && typeof data.tags === 'string') {
-      data.tags = data.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
-    }
+    // Handle file upload for file and document types
+    console.log('Checking file upload condition:', {
+      resourceType,
+      data_type: data.type,
+      uploadedFile: !!uploadedFile,
+      condition: (resourceType === 'file' || resourceType === 'document') && uploadedFile
+    });
     
-    setErrors({});
-    onSubmit(data);
+    if ((resourceType === 'file' || resourceType === 'document') && uploadedFile) {
+      console.log('Starting file upload process...');
+      setUploading(true);
+      setUploadProgress(0);
+      
+      try {
+        const formData = new FormData();
+        formData.append('file', uploadedFile);
+        formData.append('title', data.title);
+        formData.append('subject', data.subject);
+        formData.append('description', data.description);
+        formData.append('type', data.type);
+        formData.append('tags', JSON.stringify(data.tags || []));
+        
+        console.log('FormData created with file:', uploadedFile.name);
+        
+        // Simulate upload progress
+        const progressInterval = setInterval(() => {
+          setUploadProgress(prev => {
+            if (prev >= 90) {
+              clearInterval(progressInterval);
+              return 90;
+            }
+            return prev + 10;
+          });
+        }, 200);
+        
+        // Call the submit function with FormData
+        await onSubmit(formData, true);
+        setUploadProgress(100);
+        
+        setTimeout(() => {
+          setUploading(false);
+          setUploadProgress(0);
+        }, 500);
+        
+      } catch (error) {
+        setUploading(false);
+        setUploadProgress(0);
+        setErrors({ submit: error.message });
+        return;
+      }
+    } else {
+      console.log('Using regular form submission (not file upload)');
+      console.log('Reasons:', {
+        isNotFileType: !(resourceType === 'file' || resourceType === 'document'),
+        noUploadedFile: !uploadedFile,
+        resourceType,
+        uploadedFile: !!uploadedFile
+      });
+      
+      // Process tags for link type
+      if (data.tags && typeof data.tags === 'string') {
+        data.tags = data.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      }
+      
+      setErrors({});
+      onSubmit(data, false);
+    }
+  };
+
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    console.log('File selected:', file);
+    
+    if (file) {
+      console.log('File details:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+      
+      // Validate file size (10MB max)
+      if (file.size > 10 * 1024 * 1024) {
+        console.log('File too large:', file.size);
+        setErrors({ fileUrl: 'File size must be less than 10MB' });
+        return;
+      }
+      
+      // Validate file type
+      const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'text/plain',
+        'image/jpeg',
+        'image/png',
+        'image/gif'
+      ];
+      
+      if (!allowedTypes.includes(file.type)) {
+        console.log('File type not allowed:', file.type);
+        setErrors({ fileUrl: 'File type not supported. Please upload PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, or image files.' });
+        return;
+      }
+      
+      console.log('File validation passed, setting uploadedFile');
+      setUploadedFile(file);
+      setErrors(prev => ({ ...prev, fileUrl: undefined }));
+    } else {
+      console.log('No file selected');
+    }
   };
 
   const handleInputChange = (field) => {
@@ -59,7 +184,13 @@ const ResourceForm = ({ resource, onSubmit, onCancel, loading = false }) => {
   };
 
   const formValues = watch();
-  const isFormValid = Object.keys(validateResourceForm(formValues || {})).length === 0;
+  const isFormValid = (() => {
+    const errors = validateResourceForm({
+      ...formValues,
+      fileUrl: (resourceType === 'file' || resourceType === 'document') ? uploadedFile : formValues.fileUrl
+    });
+    return Object.keys(errors).length === 0;
+  })();
 
   const resourceTypes = [
     { value: 'link', label: 'Link', icon: LinkIcon, description: 'External website or resource' },
@@ -177,8 +308,84 @@ const ResourceForm = ({ resource, onSubmit, onCancel, loading = false }) => {
             )}
           </div>
 
-          {/* URL Input based on type */}
-          {resourceType === 'link' ? (
+          {/* File Upload for file and document types */}
+          {(resourceType === 'file' || resourceType === 'document') ? (
+            <div>
+              <label htmlFor="fileUrl" className="block text-sm font-medium text-gray-700 mb-1">
+                Upload File *
+              </label>
+              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-gray-400 transition-colors">
+                <div className="space-y-1 text-center">
+                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                  <div className="flex text-sm text-gray-600">
+                    <label
+                      htmlFor="fileUrl"
+                      className="relative cursor-pointer rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500"
+                    >
+                      <span>Upload a file</span>
+                      <input
+                        id="fileUrl"
+                        type="file"
+                        required={!hasExistingFile}
+                        onChange={handleFileSelect}
+                        className="sr-only"
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif"
+                      />
+                    </label>
+                    <p className="pl-1">or drag and drop</p>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, JPG, PNG, GIF up to 10MB
+                  </p>
+                  {hasExistingFile && !uploadedFile && (
+                    <p className="text-xs text-gray-500">
+                      Current file will be kept unless you choose a replacement.
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              {uploadedFile && (
+                <div className="mt-3 p-3 bg-gray-50 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <File className="h-5 w-5 text-gray-400 mr-2" />
+                      <span className="text-sm text-gray-700">{uploadedFile.name}</span>
+                      <span className="text-xs text-gray-500 ml-2">
+                        ({(uploadedFile.size / 1024 / 1024).toFixed(2)} MB)
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setUploadedFile(null)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {uploading && (
+                <div className="mt-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm text-gray-700">Uploading...</span>
+                    <span className="text-sm text-gray-500">{uploadProgress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+              
+              {errors.fileUrl && (
+                <p className="mt-1 text-sm text-red-600">{errors.fileUrl}</p>
+              )}
+            </div>
+          ) : (
             <div>
               <label htmlFor="linkUrl" className="block text-sm font-medium text-gray-700 mb-1">
                 Link URL *
@@ -196,28 +403,6 @@ const ResourceForm = ({ resource, onSubmit, onCancel, loading = false }) => {
               {errors.linkUrl && (
                 <p className="mt-1 text-sm text-red-600">{errors.linkUrl}</p>
               )}
-            </div>
-          ) : (
-            <div>
-              <label htmlFor="fileUrl" className="block text-sm font-medium text-gray-700 mb-1">
-                File URL *
-              </label>
-              <input
-                {...register('fileUrl')}
-                type="url"
-                required
-                onChange={() => handleInputChange('fileUrl')}
-                className={`form-input block w-full px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500 ${
-                  errors.fileUrl ? 'border-red-300' : 'border-gray-300'
-                }`}
-                placeholder="https://example.com/file.pdf"
-              />
-              {errors.fileUrl && (
-                <p className="mt-1 text-sm text-red-600">{errors.fileUrl}</p>
-              )}
-              <p className="mt-1 text-xs text-gray-500">
-                Enter the URL where the file is hosted (e.g., cloud storage, file sharing service)
-              </p>
             </div>
           )}
 
@@ -249,13 +434,19 @@ const ResourceForm = ({ resource, onSubmit, onCancel, loading = false }) => {
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || loading || !isFormValid}
+              disabled={
+                isSubmitting ||
+                loading ||
+                uploading ||
+                !isFormValid ||
+                ((resourceType === 'file' || resourceType === 'document') && !uploadedFile && !hasExistingFile)
+              }
               className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting || loading ? (
+              {isSubmitting || loading || uploading ? (
                 <div className="flex items-center">
                   <div className="loading-spinner w-4 h-4 mr-2"></div>
-                  {resource ? 'Updating...' : 'Sharing...'}
+                  {uploading ? 'Uploading...' : (resource ? 'Updating...' : 'Sharing...')}
                 </div>
               ) : (
                 resource ? 'Update Resource' : 'Share Resource'

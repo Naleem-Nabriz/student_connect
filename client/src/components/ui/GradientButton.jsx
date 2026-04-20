@@ -1,5 +1,4 @@
 import React from 'react';
-import theme from '../../theme/theme';
 
 const GradientButton = ({ 
   children, 
@@ -12,15 +11,15 @@ const GradientButton = ({
   const getGradient = () => {
     switch (variant) {
       case 'primary':
-        return 'bg-gradient-to-r from-[#FF7A00] to-[#FFB800]';
+        return 'bg-gradient-to-r from-[#0077B6] to-[#E07A5F]';
       case 'success':
-        return 'bg-gradient-to-r from-[#22C55E] to-[#16A34A]';
+        return 'bg-gradient-to-r from-[#0077B6] to-[#4f9fc6]';
       case 'danger':
-        return 'bg-gradient-to-r from-[#EF4444] to-[#DC2626]';
+        return 'bg-gradient-to-r from-[#E07A5F] to-[#c96a52]';
       case 'info':
-        return 'bg-gradient-to-r from-[#3B82F6] to-[#2563EB]';
+        return 'bg-gradient-to-r from-[#F2C94C] to-[#ddb73f]';
       default:
-        return 'bg-gradient-to-r from-[#FF7A00] to-[#FFB800]';
+        return 'bg-gradient-to-r from-[#0077B6] to-[#E07A5F]';
     }
   };
 
@@ -40,9 +39,10 @@ const GradientButton = ({
   const baseClasses = `
     ${getGradient()}
     ${getSize()}
+    motion-button
     text-white 
     font-medium 
-    rounded-lg
+    rounded-full
     transition-all duration-300
     transform 
     hover:scale-105 

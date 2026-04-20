@@ -1,17 +1,27 @@
-import React, { useState } from 'react';
-import { Routes, Route, NavLink, Navigate } from 'react-router-dom';
+import React, { useLayoutEffect, useRef, useState } from 'react';
+import { Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
 import { Plus, BookOpen, TrendingUp, BarChart3, Calendar, Edit, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { gsap } from 'gsap';
 import { useSubjects, useRecords, useProgressDashboard } from '../hooks/useAcademic';
 import SubjectForm from '../components/SubjectForm';
 import RecordForm from '../components/RecordForm';
 import DashboardOverview from '../components/DashboardOverview';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 
+const addUniqueRef = (collection, element) => {
+  if (element && !collection.current.includes(element)) {
+    collection.current.push(element);
+  }
+};
+
 const Subjects = () => {
   const { subjects, loading, error, createSubject, updateSubject, deleteSubject } = useSubjects();
   const [showForm, setShowForm] = useState(false);
   const [editingSubject, setEditingSubject] = useState(null);
+  const actionButtonRefs = useRef([]);
+
+  actionButtonRefs.current = [];
 
   const handleCreateSubject = async (subjectData) => {
     try {
@@ -57,7 +67,8 @@ const Subjects = () => {
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="btn-primary flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
+          ref={(element) => addUniqueRef(actionButtonRefs, element)}
+          className="js-cta-button btn-primary flex items-center rounded-full bg-[#0f6c7a] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(15,108,122,0.18)] transition-all duration-300 hover:bg-[#0c5965]"
         >
           <Plus className="h-4 w-4 mr-2" />
           Add Subject
@@ -144,7 +155,8 @@ const Subjects = () => {
           <div className="mt-6">
             <button
               onClick={() => setShowForm(true)}
-              className="btn-primary inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
+              ref={(element) => addUniqueRef(actionButtonRefs, element)}
+              className="js-cta-button inline-flex items-center rounded-full bg-[#0f6c7a] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(15,108,122,0.18)] transition-all duration-300 hover:bg-[#0c5965]"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Subject
@@ -174,24 +186,34 @@ const Records = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [filterSubject, setFilterSubject] = useState('');
+  const [isSubmittingRecord, setIsSubmittingRecord] = useState(false);
+  const actionButtonRefs = useRef([]);
+
+  actionButtonRefs.current = [];
 
   const handleCreateRecord = async (recordData) => {
+    setIsSubmittingRecord(true);
     try {
       await createRecord(recordData);
       setShowForm(false);
       toast.success('Record added successfully!');
     } catch (error) {
       toast.error(error.message);
+    } finally {
+      setIsSubmittingRecord(false);
     }
   };
 
   const handleUpdateRecord = async (recordData) => {
+    setIsSubmittingRecord(true);
     try {
       await updateRecord(editingRecord._id, recordData);
       setEditingRecord(null);
       toast.success('Record updated successfully!');
     } catch (error) {
       toast.error(error.message);
+    } finally {
+      setIsSubmittingRecord(false);
     }
   };
 
@@ -218,6 +240,10 @@ const Records = () => {
     return 'text-red-600';
   };
 
+  const formatValue = (value, suffix = '') => (
+    value !== undefined && value !== null && value !== '' ? `${value}${suffix}` : '-'
+  );
+
   if (loading && records.length === 0) {
     return <LoadingSpinner text="Loading records..." />;
   }
@@ -227,11 +253,12 @@ const Records = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Academic Records</h1>
-          <p className="text-gray-600 mt-1">Track your marks, attendance, and assignments</p>
+          <p className="text-gray-600 mt-1">Enter quiz, mid term, assignment, final marks, and attendance in one record</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="btn-primary flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
+          ref={(element) => addUniqueRef(actionButtonRefs, element)}
+          className="js-cta-button flex items-center rounded-full bg-[#0f6c7a] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(15,108,122,0.18)] transition-all duration-300 hover:bg-[#0c5965]"
         >
           <Plus className="h-4 w-4 mr-2" />
           Add Record
@@ -269,16 +296,19 @@ const Records = () => {
                   Subject
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Type
+                  Quiz
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Marks
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Attendance
+                  Mid Term
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Assignment
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Final
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Attendance
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Date
@@ -297,23 +327,28 @@ const Records = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
-                      {record.testType}
-                    </span>
+                    <div className={`text-sm font-medium ${getScoreColor(record.quizMarks || 0)}`}>
+                      {formatValue(record.quizMarks)}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className={`text-sm font-medium ${getScoreColor(record.marks || 0)}`}>
-                      {record.marks || '-'}
+                    <div className={`text-sm font-medium ${getScoreColor(record.midtermMarks || 0)}`}>
+                      {formatValue(record.midtermMarks)}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className={`text-sm font-medium ${getScoreColor(record.assignmentMarks || 0)}`}>
+                      {formatValue(record.assignmentMarks)}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className={`text-sm font-medium ${getScoreColor(record.finalMarks || 0)}`}>
+                      {formatValue(record.finalMarks)}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className={`text-sm font-medium ${getScoreColor(record.attendance || 0)}`}>
-                      {record.attendance || '-'}%
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className={`text-sm font-medium ${getScoreColor(record.assignmentScore || 0)}`}>
-                      {record.assignmentScore || '-'}
+                      {formatValue(record.attendance, '%')}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -354,7 +389,8 @@ const Records = () => {
             <div className="mt-6">
               <button
                 onClick={() => setShowForm(true)}
-                className="btn-primary inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
+                ref={(element) => addUniqueRef(actionButtonRefs, element)}
+                className="js-cta-button inline-flex items-center rounded-full bg-[#0f6c7a] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(15,108,122,0.18)] transition-all duration-300 hover:bg-[#0c5965]"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Record
@@ -373,7 +409,7 @@ const Records = () => {
             setShowForm(false);
             setEditingRecord(null);
           }}
-          loading={loading}
+          loading={isSubmittingRecord}
         />
       )}
     </div>
@@ -399,18 +435,89 @@ const Dashboard = () => {
 };
 
 const AcademicProgress = () => {
+  const location = useLocation();
+  const pageRef = useRef(null);
+  const navRef = useRef(null);
+  const navButtonRefs = useRef([]);
+  navButtonRefs.current = [];
+
+  useLayoutEffect(() => {
+    const context = gsap.context(() => {
+      gsap.fromTo(
+        pageRef.current,
+        { autoAlpha: 0, y: 24 },
+        { autoAlpha: 1, y: 0, duration: 0.55, ease: 'power3.out' }
+      );
+
+      gsap.fromTo(
+        navButtonRefs.current,
+        { autoAlpha: 0, y: -12 },
+        { autoAlpha: 1, y: 0, duration: 0.4, stagger: 0.08, ease: 'power2.out', delay: 0.08 }
+      );
+    }, pageRef);
+
+    return () => context.revert();
+  }, [location.pathname]);
+
+  useLayoutEffect(() => {
+    const elements = [
+      ...navButtonRefs.current,
+      ...Array.from(pageRef.current?.querySelectorAll('.js-cta-button') || []),
+    ];
+    const cleanups = [];
+
+    elements.forEach((element) => {
+      if (!element) {
+        return;
+      }
+
+      const onEnter = () => {
+        gsap.to(element, {
+          y: -3,
+          scale: 1.02,
+          boxShadow: '0 20px 38px rgba(61, 61, 61, 0.16)',
+          duration: 0.22,
+          ease: 'power2.out',
+        });
+      };
+
+      const onLeave = () => {
+        gsap.to(element, {
+          y: 0,
+          scale: 1,
+          boxShadow: '0 10px 24px rgba(61, 61, 61, 0.08)',
+          duration: 0.22,
+          ease: 'power2.out',
+        });
+      };
+
+      element.addEventListener('mouseenter', onEnter);
+      element.addEventListener('mouseleave', onLeave);
+      cleanups.push(() => {
+        element.removeEventListener('mouseenter', onEnter);
+        element.removeEventListener('mouseleave', onLeave);
+      });
+    });
+
+    return () => cleanups.forEach((cleanup) => cleanup());
+  }, [location.pathname]);
+
   return (
-    <div className="space-y-6">
+    <div
+      ref={pageRef}
+      className="space-y-6 rounded-[32px] border border-[#e6dccf] bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.95),rgba(249,244,235,0.92)_48%,rgba(240,247,246,0.88))] p-6 shadow-[0_28px_70px_rgba(61,61,61,0.08)]"
+    >
       {/* Navigation Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
+      <div className="rounded-[28px] border border-[#e6dccf] bg-white/80 p-3 shadow-[0_16px_40px_rgba(61,61,61,0.06)] backdrop-blur-sm">
+        <nav ref={navRef} className="flex flex-wrap gap-3">
           <NavLink
             to="dashboard"
+            ref={(element) => addUniqueRef(navButtonRefs, element)}
             className={({ isActive }) =>
-              `py-2 px-1 border-b-2 font-medium text-sm ${
+              `inline-flex items-center rounded-full border px-4 py-2.5 text-sm font-semibold shadow-[0_10px_24px_rgba(61,61,61,0.08)] transition-all duration-300 ${
                 isActive
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-[#0f6c7a] bg-[#0f6c7a] text-white'
+                  : 'border-[#d9cfbf] bg-white/90 text-[#5f5952] hover:border-[#0f6c7a]/30 hover:text-[#0f6c7a]'
               }`
             }
           >
@@ -419,11 +526,12 @@ const AcademicProgress = () => {
           </NavLink>
           <NavLink
             to="subjects"
+            ref={(element) => addUniqueRef(navButtonRefs, element)}
             className={({ isActive }) =>
-              `py-2 px-1 border-b-2 font-medium text-sm ${
+              `inline-flex items-center rounded-full border px-4 py-2.5 text-sm font-semibold shadow-[0_10px_24px_rgba(61,61,61,0.08)] transition-all duration-300 ${
                 isActive
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-[#0f6c7a] bg-[#0f6c7a] text-white'
+                  : 'border-[#d9cfbf] bg-white/90 text-[#5f5952] hover:border-[#0f6c7a]/30 hover:text-[#0f6c7a]'
               }`
             }
           >
@@ -432,11 +540,12 @@ const AcademicProgress = () => {
           </NavLink>
           <NavLink
             to="records"
+            ref={(element) => addUniqueRef(navButtonRefs, element)}
             className={({ isActive }) =>
-              `py-2 px-1 border-b-2 font-medium text-sm ${
+              `inline-flex items-center rounded-full border px-4 py-2.5 text-sm font-semibold shadow-[0_10px_24px_rgba(61,61,61,0.08)] transition-all duration-300 ${
                 isActive
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-[#0f6c7a] bg-[#0f6c7a] text-white'
+                  : 'border-[#d9cfbf] bg-white/90 text-[#5f5952] hover:border-[#0f6c7a]/30 hover:text-[#0f6c7a]'
               }`
             }
           >

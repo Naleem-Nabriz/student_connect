@@ -62,6 +62,26 @@ export const groupService = {
     }
   },
 
+  // Accept join request
+  acceptJoinRequest: async (groupId, userId) => {
+    try {
+      const response = await groupsAPI.post(`/${groupId}/requests/${userId}/accept`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleAPIError(error));
+    }
+  },
+
+  // Reject join request
+  rejectJoinRequest: async (groupId, userId) => {
+    try {
+      const response = await groupsAPI.post(`/${groupId}/requests/${userId}/reject`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleAPIError(error));
+    }
+  },
+
   // Leave group
   leaveGroup: async (id) => {
     try {

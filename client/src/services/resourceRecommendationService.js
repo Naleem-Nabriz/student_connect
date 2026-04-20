@@ -30,7 +30,7 @@ class ResourceRecommendationService {
 
     try {
       // Fetch all resources
-      const response = await resourceService.getAllResources();
+      const response = await resourceService.getResources();
       const allResources = response.resources || [];
 
       // Filter and score resources
@@ -122,7 +122,7 @@ class ResourceRecommendationService {
   // Get resources by subject (for general recommendations)
   async getResourcesBySubject(subject) {
     try {
-      const response = await resourceService.getAllResources();
+      const response = await resourceService.getResources();
       const allResources = response.resources || [];
       
       return allResources.filter(resource => 
@@ -143,7 +143,7 @@ class ResourceRecommendationService {
     }
 
     try {
-      const response = await resourceService.getAllResources();
+      const response = await resourceService.getResources();
       const allResources = response.resources || [];
 
       // Simulate popularity based on resource properties

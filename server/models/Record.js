@@ -11,7 +11,22 @@ const recordSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  marks: {
+  quizMarks: {
+    type: Number,
+    min: 0,
+    max: 100
+  },
+  midtermMarks: {
+    type: Number,
+    min: 0,
+    max: 100
+  },
+  assignmentMarks: {
+    type: Number,
+    min: 0,
+    max: 100
+  },
+  finalMarks: {
     type: Number,
     min: 0,
     max: 100
@@ -20,16 +35,6 @@ const recordSchema = new mongoose.Schema({
     type: Number,
     min: 0,
     max: 100
-  },
-  assignmentScore: {
-    type: Number,
-    min: 0,
-    max: 100
-  },
-  testType: {
-    type: String,
-    enum: ['quiz', 'midterm', 'final', 'assignment', 'project'],
-    default: 'quiz'
   },
   date: {
     type: Date,
