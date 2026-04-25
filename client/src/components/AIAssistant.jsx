@@ -3,13 +3,14 @@ import { useLocation } from 'react-router-dom';
 import { Bot, Send, Sparkles, X } from 'lucide-react';
 import Groq from 'groq-sdk';
 
-// ⭐ FREE GROQ CONFIGURATION
-const GROQ_API_KEY = 'REDACTED_GROQ_API_KEY'; // Get from console.groq.com
+const apiKey = import.meta.env.VITE_GROQ_API_KEY;
 
-const groq = new Groq({
-  apiKey: GROQ_API_KEY,
-  dangerouslyAllowBrowser: true
-});
+const groq = GROQ_API_KEY
+  ? new Groq({
+      apiKey: GROQ_API_KEY,
+      dangerouslyAllowBrowser: true,
+    })
+  : null;
 
 // ✅ CURRENT WORKING MODELS WITH FALLBACKS (Updated January 2025)
 const WORKING_MODELS = [
@@ -93,6 +94,10 @@ const getModuleConfig = (pathname) =>
 
 // ⭐ SMART API CALL WITH AUTO-FALLBACK
 const callGroqWithFallback = async (messages, modelIndex = 0) => {
+  if (!groq) {
+    throw new Error('Missing Groq API key');
+  }
+
   if (modelIndex >= WORKING_MODELS.length) {
     throw new Error('All models failed. Please try again later.');
   }
@@ -200,8 +205,8 @@ const AIAssistant = () => {
       
       let errorMessage = '❌ Sorry, I encountered an error. Please try again.';
       
-      if (error.message.includes('API key')) {
-        errorMessage = '🔑 API key issue. Please check your Groq API key.';
+      if (error.message.includes('API key') || error.message.includes('Missing Groq API key')) {
+        errorMessage = '🔑 Groq API key missing. Set REACT_APP_GROQ_API_KEY to enable the assistant.';
       } else if (error.message.includes('rate limit')) {
         errorMessage = '⏳ Too many requests. Please wait a moment and try again.';
       } else if (error.message.includes('All models failed')) {

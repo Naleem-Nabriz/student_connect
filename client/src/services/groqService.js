@@ -1,16 +1,22 @@
 import Groq from 'groq-sdk';
 
-const GROQ_API_KEY = 'REDACTED_GROQ_API_KEY'; // Get from console.groq.com
+const apiKey = import.meta.env.VITE_GROQ_API_KEY;
 
 class GroqService {
   constructor() {
-    this.groq = new Groq({
-      apiKey: GROQ_API_KEY,
-      dangerouslyAllowBrowser: true // For React frontend
-    });
+    this.groq = GROQ_API_KEY
+      ? new Groq({
+          apiKey: GROQ_API_KEY,
+          dangerouslyAllowBrowser: true, // For React frontend
+        })
+      : null;
   }
 
   async chat({ message, history = [], module = 'general' }) {
+    if (!this.groq) {
+      throw new Error('Missing Groq API key');
+    }
+
     const systemPrompt = this.getSystemPrompt(module);
 
     const messages = [
